@@ -158,7 +158,7 @@ export const getInvoices = async (req: AuthRequest, res: Response) => {
     
     let query = supabaseAdmin
         .from('fee_invoices')
-        .select('*, students(first_name, last_name, admission_number), fee_types(name)')
+        .select('*, students(first_name, last_name, admission_number), fee_structures(fee_types(name))')
         .eq('school_id', schoolId)
         .order('created_at', { ascending: false });
 

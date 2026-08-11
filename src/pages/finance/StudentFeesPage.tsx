@@ -30,16 +30,26 @@ export default function StudentFeesPage() {
   const invoices = invoicesRes?.data || [];
 
   const [paymentData, setPaymentData] = useState<{amount: number, payment_method: 'cash'|'bank_transfer'|'card'|'cheque', reference_number: string}>({ amount: 0, payment_method: 'cash', reference_number: '' });
+  
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generateData, setGenerateData] = useState<{ fsId: string, amount: number, discount: number, title: string }>({ fsId: '', amount: 0, discount: 0, title: '' });
 
-  const handleGenerateInvoice = async (fsId: string, amount: number, title: string) => {
-    if (!studentId) return;
+  const openGenerateModal = (fsId: string, amount: number, name: string) => {
+    setGenerateData({ fsId, amount, discount: 0, title: `${name} - ${format(new Date(), 'MMM yyyy')}` });
+    setShowGenerateModal(true);
+  };
+
+  const handleGenerateInvoice = async () => {
+    if (!studentId || !generateData.fsId) return;
     try {
       await createInvoice({
         student_id: studentId,
-        title,
-        amount,
+        fee_structure_id: generateData.fsId,
+        amount: generateData.amount,
+        discount: generateData.discount,
         due_date: format(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd') // due in 14 days
       }).unwrap();
+      setShowGenerateModal(false);
     } catch (e) {
       console.error(e);
     }
@@ -47,7 +57,7 @@ export default function StudentFeesPage() {
 
   const openCollectModal = (invoice: any) => {
     setSelectedInvoice(invoice);
-    setPaymentData({ amount: invoice.amount, payment_method: 'cash', reference_number: '' }); // default full amount
+    setPaymentData({ amount: invoice.due_amount || invoice.net_amount, payment_method: 'cash', reference_number: '' });
     setShowCollectModal(true);
   };
 
@@ -111,7 +121,7 @@ export default function StudentFeesPage() {
                     <span className="font-semibold text-primary-700">${fs.amount.toFixed(2)}</span>
                   </div>
                   <button 
-                    onClick={() => handleGenerateInvoice(fs.id, fs.amount, `${fs.name} - ${format(new Date(), 'MMM yyyy')}`)}
+                    onClick={() => openGenerateModal(fs.id, fs.amount, fs.name)}
                     disabled={isGenerating}
                     className="btn-secondary w-full text-sm py-1.5 mt-2 flex justify-center items-center gap-2"
                   >
@@ -144,9 +154,12 @@ export default function StudentFeesPage() {
                   <tbody className="divide-y divide-gray-100">
                     {invoices.map(inv => (
                       <tr key={inv.id} className="hover:bg-gray-50/50">
-                        <td className="px-4 py-3 font-medium text-gray-900">{inv.title}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{inv.fee_structures?.fee_types?.name || inv.invoice_number}</td>
                         <td className="px-4 py-3 text-gray-600">{inv.due_date}</td>
-                        <td className="px-4 py-3 font-semibold">${inv.amount.toFixed(2)}</td>
+                        <td className="px-4 py-3 font-semibold">
+                          ${inv.net_amount?.toFixed(2) || inv.amount?.toFixed(2)}
+                          {inv.discount > 0 && <span className="text-xs text-green-600 block">-${inv.discount.toFixed(2)} discount</span>}
+                        </td>
                         <td className="px-4 py-3"><StatusBadge status={inv.status} /></td>
                         <td className="px-4 py-3 text-right">
                           {inv.status !== 'paid' && hasPermission('finance.collect') && (
@@ -168,6 +181,55 @@ export default function StudentFeesPage() {
         </div>
       )}
 
+      {/* Generate Invoice Modal */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Generate Invoice</h2>
+            
+            <div className="bg-gray-50 p-3 rounded-lg mb-4">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Fee Name</p>
+              <p className="font-medium text-gray-900">{generateData.title}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="label">Base Amount</label>
+                <div className="text-lg font-semibold text-gray-900">${generateData.amount.toFixed(2)}</div>
+              </div>
+              <div>
+                <label className="label">Discount Amount</label>
+                <input 
+                  type="number" 
+                  value={generateData.discount} 
+                  onChange={e => setGenerateData({...generateData, discount: Number(e.target.value)})}
+                  className="input-field"
+                  min="0"
+                  max={generateData.amount}
+                />
+              </div>
+              <div>
+                <label className="label">Net Amount</label>
+                <div className="text-xl font-bold text-primary-700">
+                  ${(generateData.amount - generateData.discount).toFixed(2)}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setShowGenerateModal(false)} className="btn-secondary">Cancel</button>
+              <button 
+                onClick={handleGenerateInvoice} 
+                disabled={isGenerating || generateData.discount > generateData.amount || generateData.discount < 0}
+                className="btn-primary"
+              >
+                {isGenerating ? 'Generating...' : 'Confirm Invoice'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Collect Payment Modal */}
       {showCollectModal && selectedInvoice && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -177,7 +239,7 @@ export default function StudentFeesPage() {
             <div className="bg-gray-50 p-3 rounded-lg mb-4 flex justify-between items-center">
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Invoice</p>
-                <p className="font-medium text-gray-900">{selectedInvoice.title}</p>
+                <p className="font-medium text-gray-900">{selectedInvoice.fee_structures?.fee_types?.name || selectedInvoice.invoice_number}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">Total Due</p>
