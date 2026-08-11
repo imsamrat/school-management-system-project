@@ -177,7 +177,7 @@ export const getInvoices = async (req: AuthRequest, res: Response) => {
 export const collectPayment = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
-    const { invoice_id, amount, payment_method, remarks } = req.body;
+    const { invoice_id, amount, payment_method, reference_number } = req.body;
     
     // 1. Get the invoice to verify amount
     const { data: invoice, error: invoiceError } = await supabaseAdmin
@@ -189,6 +189,9 @@ export const collectPayment = async (req: AuthRequest, res: Response) => {
         
     if (invoiceError || !invoice) return sendError(res, 'Invoice not found', 404);
     
+    // Generate a unique receipt number
+    const receipt_number = `REC-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+
     // 2. Insert payment record
     const { data: payment, error: paymentError } = await supabaseAdmin
         .from('fee_payments')
@@ -198,13 +201,17 @@ export const collectPayment = async (req: AuthRequest, res: Response) => {
             student_id: invoice.student_id,
             amount,
             payment_method,
-            remarks,
+            transaction_ref: reference_number,
+            receipt_number,
             collected_by: req.user?.id
         })
         .select()
         .single();
         
-    if (paymentError) throw paymentError;
+    if (paymentError) {
+      console.error('Payment Error:', paymentError);
+      throw paymentError;
+    }
     
     // 3. Update invoice status and paid amount
     const newPaidAmount = Number(invoice.paid_amount) + Number(amount);

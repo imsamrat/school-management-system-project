@@ -29,7 +29,7 @@ export default function StudentFeesPage() {
   const feeStructures = feeStructuresRes?.data || [];
   const invoices = invoicesRes?.data || [];
 
-  const [paymentData, setPaymentData] = useState<{amount: number, payment_method: 'cash'|'bank_transfer'|'card'|'cheque', reference_number: string}>({ amount: 0, payment_method: 'cash', reference_number: '' });
+  const [paymentData, setPaymentData] = useState<{amount: number, payment_method: 'cash'|'bank'|'card'|'mobile_banking'|'other', reference_number: string}>({ amount: 0, payment_method: 'cash', reference_number: '' });
   
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generateData, setGenerateData] = useState<{ fsId: string, amount: number, discount: number, title: string }>({ fsId: '', amount: 0, discount: 0, title: '' });
@@ -262,13 +262,14 @@ export default function StudentFeesPage() {
                 <label className="label">Payment Method</label>
                 <select 
                   value={paymentData.payment_method} 
-                  onChange={e => setPaymentData({...paymentData, payment_method: e.target.value as 'cash'|'bank_transfer'|'card'|'cheque'})}
+                  onChange={e => setPaymentData({...paymentData, payment_method: e.target.value as 'cash'|'bank'|'card'|'mobile_banking'|'other'})}
                   className="input-field"
                 >
                   <option value="cash">Cash</option>
-                  <option value="bank_transfer">Bank Transfer</option>
+                  <option value="bank">Bank Transfer</option>
                   <option value="card">Credit/Debit Card</option>
-                  <option value="cheque">Cheque</option>
+                  <option value="mobile_banking">Mobile Banking</option>
+                  <option value="other">Cheque / Other</option>
                 </select>
               </div>
               {paymentData.payment_method !== 'cash' && (

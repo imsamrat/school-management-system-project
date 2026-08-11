@@ -183,8 +183,9 @@ export default function CollectFeesPage() {
                 <select value={paymentData.payment_method} onChange={e => setPaymentData({ ...paymentData, payment_method: e.target.value as any })} className="input-field">
                   <option value="cash">Cash</option>
                   <option value="card">Card</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="cheque">Cheque</option>
+                  <option value="bank">Bank Transfer</option>
+                  <option value="mobile_banking">Mobile Banking</option>
+                  <option value="other">Cheque / Other</option>
                 </select>
               </div>
               <div>
