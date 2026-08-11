@@ -22,7 +22,7 @@ export default function ApplicationsPage() {
   const columns: Column<AdmissionApplication>[] = [
     { header: 'Applicant Name', cell: row => <span className="font-semibold text-gray-900">{row.first_name} {row.last_name}</span> },
     { header: 'Applied For', accessorKey: 'applied_class' },
-    { header: 'Applied Date', cell: row => format(new Date(row.applied_date), 'MMM dd, yyyy') },
+    { header: 'Applied Date', cell: row => format(new Date(row.created_at), 'MMM dd, yyyy') },
     { header: 'Contact', cell: row => <span className="text-sm">{row.email}</span> },
     { header: 'Status', cell: row => <StatusBadge status={row.status} /> },
     {

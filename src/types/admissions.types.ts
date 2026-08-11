@@ -9,5 +9,5 @@ export interface AdmissionApplication {
   previous_school?: string;
   applied_class: string;
   status: 'pending' | 'approved' | 'rejected';
-  applied_date: string;
+  created_at: string;
 }
