@@ -67,11 +67,8 @@ const sidebarConfig: SidebarItem[] = [
     icon: Users,
     permission: 'employees.view',
     children: [
-      { label: 'All Staff', href: '/staff', permission: 'employees.view' },
-      { label: 'Teachers', href: '/staff?role=teacher', permission: 'teachers.view' },
-      { label: 'Employees', href: '/staff?role=employee', permission: 'employees.view' },
-      { label: 'Add Staff Member', href: '/staff/new', permission: 'employees.create' },
-      { label: 'Add Teacher', href: '/staff/new?role=teacher', permission: 'teachers.create' },
+      { label: 'Staff Directory', href: '/staff', permission: 'employees.view' },
+      { label: 'Add Staff / Teacher', href: '/staff/new', permission: 'employees.create' },
     ],
   },
   {
