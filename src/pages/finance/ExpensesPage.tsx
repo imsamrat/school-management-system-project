@@ -7,7 +7,9 @@ import {
   useGetExpensesQuery, 
   useGetExpenseCategoriesQuery, 
   useCreateExpenseMutation,
-  useDeleteExpenseMutation
+  useDeleteExpenseMutation,
+  useCreateExpenseCategoryMutation,
+  useDeleteExpenseCategoryMutation
 } from '@/features/finance/expenseApi';
 import type { Expense } from '@/types/finance.types';
 
