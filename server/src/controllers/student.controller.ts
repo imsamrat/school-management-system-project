@@ -1,85 +1,118 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { sendSuccess, sendError } from '../utils/response.js';
+import { AuthRequest } from '../types/express.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
-// In-memory mock data
-let students = [
-  {
-    id: 's001',
-    admission_number: 'ADM-2024-001',
-    first_name: 'John',
-    last_name: 'Doe',
-    gender: 'male',
-    class_id: 'c1',
-    section_id: 'sec1',
-    roll_number: '10',
-    status: 'active',
-  },
-  {
-    id: 's002',
-    admission_number: 'ADM-2024-002',
-    first_name: 'Jane',
-    last_name: 'Smith',
-    gender: 'female',
-    class_id: 'c1',
-    section_id: 'sec2',
-    roll_number: '12',
-    status: 'active',
-  },
-];
+export const getStudents = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    if (!schoolId) return sendError(res, 'School ID not found in token', 400);
 
-export const getStudents = async (req: Request, res: Response) => {
-  // Mock search/filter
-  const { q } = req.query;
-  let result = students;
+    const { q } = req.query;
+    let query = supabaseAdmin
+      .from('students')
+      .select('*, classes(name), sections(name)')
+      .eq('school_id', schoolId)
+      .neq('status', 'withdrawn');
 
-  if (q && typeof q === 'string') {
-    const query = q.toLowerCase();
-    result = students.filter(
-      (s) =>
-        s.first_name.toLowerCase().includes(query) ||
-        s.last_name.toLowerCase().includes(query) ||
-        s.admission_number.toLowerCase().includes(query)
-    );
+    if (q && typeof q === 'string') {
+      query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,admission_number.ilike.%${q}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return sendSuccess(res, data);
+  } catch (err: any) {
+    console.error('Error fetching students:', err);
+    return sendError(res, 'Failed to fetch students', 500);
   }
-
-  return sendSuccess(res, result);
 };
 
-export const getStudentById = async (req: Request, res: Response) => {
-  const student = students.find((s) => s.id === req.params.id);
-  if (!student) {
-    return sendError(res, 'Student not found', 404);
+export const getStudentById = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { id } = req.params;
+
+    const { data, error } = await supabaseAdmin
+      .from('students')
+      .select('*, classes(name), sections(name)')
+      .eq('school_id', schoolId)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    if (!data) return sendError(res, 'Student not found', 404);
+
+    return sendSuccess(res, data);
+  } catch (err: any) {
+    console.error('Error fetching student:', err);
+    return sendError(res, 'Failed to fetch student details', 500);
   }
-  return sendSuccess(res, student);
 };
 
-export const createStudent = async (req: Request, res: Response) => {
-  const newStudent = {
-    id: `s00${students.length + 1}`,
-    ...req.body,
-    status: 'active',
-  };
-  students.push(newStudent);
-  return sendSuccess(res, newStudent, 'Student created successfully', 201);
+export const createStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    if (!schoolId) return sendError(res, 'School ID not found in token', 400);
+
+    const newStudent = {
+      ...req.body,
+      school_id: schoolId,
+      status: 'active'
+    };
+
+    const { data, error } = await supabaseAdmin
+      .from('students')
+      .insert(newStudent)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Student created successfully', 201);
+  } catch (err: any) {
+    console.error('Error creating student:', err);
+    return sendError(res, 'Failed to create student', 500);
+  }
 };
 
-export const updateStudent = async (req: Request, res: Response) => {
-  const index = students.findIndex((s) => s.id === req.params.id);
-  if (index === -1) {
-    return sendError(res, 'Student not found', 404);
-  }
+export const updateStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { id } = req.params;
 
-  students[index] = { ...students[index], ...req.body };
-  return sendSuccess(res, students[index], 'Student updated successfully');
+    const { data, error } = await supabaseAdmin
+      .from('students')
+      .update(req.body)
+      .eq('school_id', schoolId)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Student updated successfully');
+  } catch (err: any) {
+    console.error('Error updating student:', err);
+    return sendError(res, 'Failed to update student', 500);
+  }
 };
 
-export const deleteStudent = async (req: Request, res: Response) => {
-  const index = students.findIndex((s) => s.id === req.params.id);
-  if (index === -1) {
-    return sendError(res, 'Student not found', 404);
-  }
+export const deleteStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { id } = req.params;
 
-  // Soft delete logic mockup
-  students[index].status = 'withdrawn';
-  return sendSuccess(res, null, 'Student deleted successfully');
+    // Soft delete logic
+    const { error } = await supabaseAdmin
+      .from('students')
+      .update({ status: 'withdrawn' })
+      .eq('school_id', schoolId)
+      .eq('id', id);
+
+    if (error) throw error;
+    return sendSuccess(res, null, 'Student deleted successfully');
+  } catch (err: any) {
+    console.error('Error deleting student:', err);
+    return sendError(res, 'Failed to delete student', 500);
+  }
 };

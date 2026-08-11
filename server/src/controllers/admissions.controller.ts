@@ -1,33 +1,64 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { sendSuccess, sendError } from '../utils/response.js';
+import { AuthRequest } from '../types/express.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
-let applications = [
-  { id: 'app1', first_name: 'Jane', last_name: 'Doe', date_of_birth: '2015-05-14', gender: 'Female', phone: '1234567890', email: 'jane@example.com', previous_school: 'City Elementary', applied_class: 'Class 5', status: 'pending', applied_date: '2026-08-01' },
-  { id: 'app2', first_name: 'Mike', last_name: 'Ross', date_of_birth: '2016-08-20', gender: 'Male', phone: '0987654321', email: 'mike@example.com', previous_school: '', applied_class: 'Class 4', status: 'approved', applied_date: '2026-08-02' }
-];
+export const getApplications = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { status } = req.query;
+    
+    let query = supabaseAdmin
+        .from('admission_applications')
+        .select('*')
+        .eq('school_id', schoolId)
+        .order('created_at', { ascending: false });
 
-export const getApplications = async (req: Request, res: Response) => {
-  return sendSuccess(res, applications);
+    if (status) query = query.eq('status', status);
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch applications', 500);
+  }
 };
 
-export const createApplication = async (req: Request, res: Response) => {
-  const newApp = { 
-    ...req.body, 
-    id: `app${applications.length + 1}`,
-    status: 'pending',
-    applied_date: new Date().toISOString().split('T')[0]
-  };
-  applications.push(newApp);
-  return sendSuccess(res, newApp, 'Admission application submitted successfully', 201);
+export const createApplication = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin
+        .from('admission_applications')
+        .insert({ ...req.body, school_id: schoolId, status: 'pending' })
+        .select()
+        .single();
+        
+    if (error) throw error;
+    return sendSuccess(res, data, 'Application submitted successfully', 201);
+  } catch (err) {
+    return sendError(res, 'Failed to submit application', 500);
+  }
 };
 
-export const updateApplicationStatus = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  
-  const appIndex = applications.findIndex(a => a.id === id);
-  if (appIndex === -1) return sendError(res, 'Application not found', 404);
-  
-  applications[appIndex].status = status;
-  return sendSuccess(res, applications[appIndex], 'Application status updated');
+export const updateApplicationStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status, comments } = req.body;
+    
+    const { data, error } = await supabaseAdmin
+        .from('admission_applications')
+        .update({ status, comments })
+        .eq('id', id)
+        .select()
+        .single();
+        
+    if (error) throw error;
+    
+    // If approved, ideally trigger student creation here via Supabase function or webhook
+    
+    return sendSuccess(res, data, 'Application status updated');
+  } catch (err) {
+    return sendError(res, 'Failed to update application', 500);
+  }
 };

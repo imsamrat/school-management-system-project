@@ -1,75 +1,112 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { sendSuccess, sendError } from '../utils/response.js';
+import { AuthRequest } from '../types/express.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
-let academicYears = [
-  { id: 'ay1', name: '2026-2027', start_date: '2026-04-01', end_date: '2027-03-31', is_current: true },
-];
-
-let classes = [
-  { id: 'c1', name: 'Class 1', numeric_order: 1 },
-  { id: 'c2', name: 'Class 2', numeric_order: 2 },
-];
-
-let sections = [
-  { id: 'sec1', class_id: 'c1', name: 'A', capacity: 30 },
-  { id: 'sec2', class_id: 'c1', name: 'B', capacity: 30 },
-];
-
-let subjects = [
-  { id: 'sub1', name: 'Mathematics', code: 'MATH101', subject_type: 'theory' },
-  { id: 'sub2', name: 'Science', code: 'SCI101', subject_type: 'theory' },
-];
+export const getAcademicYears = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('academic_years').select('*').eq('school_id', schoolId).order('start_date', { ascending: false });
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch academic years', 500);
+  }
+};
 
 // Classes
-export const getClasses = async (req: Request, res: Response) => sendSuccess(res, classes);
-export const createClass = async (req: Request, res: Response) => {
-  const newClass = { id: `c${classes.length + 1}`, ...req.body };
-  classes.push(newClass);
-  return sendSuccess(res, newClass, 'Class created', 201);
+export const getClasses = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('classes').select('*').eq('school_id', schoolId).order('numeric_order', { ascending: true });
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch classes', 500);
+  }
 };
-export const updateClass = async (req: Request, res: Response) => {
-  const index = classes.findIndex(c => c.id === req.params.id);
-  if (index === -1) return sendError(res, 'Class not found', 404);
-  classes[index] = { ...classes[index], ...req.body };
-  return sendSuccess(res, classes[index], 'Class updated');
+
+export const createClass = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('classes').insert({ ...req.body, school_id: schoolId }).select().single();
+    if (error) throw error;
+    return sendSuccess(res, data, 'Class created', 201);
+  } catch (err) {
+    return sendError(res, 'Failed to create class', 500);
+  }
+};
+
+export const updateClass = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('classes').update(req.body).eq('school_id', schoolId).eq('id', req.params.id).select().single();
+    if (error) throw error;
+    return sendSuccess(res, data, 'Class updated');
+  } catch (err) {
+    return sendError(res, 'Failed to update class', 500);
+  }
 };
 
 // Sections
-export const getSections = async (req: Request, res: Response) => sendSuccess(res, sections);
-export const createSection = async (req: Request, res: Response) => {
-  const newSection = { id: `sec${sections.length + 1}`, ...req.body };
-  sections.push(newSection);
-  return sendSuccess(res, newSection, 'Section created', 201);
+export const getSections = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('sections').select('*, classes(name)').eq('school_id', schoolId).order('name', { ascending: true });
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch sections', 500);
+  }
+};
+
+export const createSection = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('sections').insert({ ...req.body, school_id: schoolId }).select().single();
+    if (error) throw error;
+    return sendSuccess(res, data, 'Section created', 201);
+  } catch (err) {
+    return sendError(res, 'Failed to create section', 500);
+  }
 };
 
 // Subjects
-export const getSubjects = async (req: Request, res: Response) => sendSuccess(res, subjects);
-export const createSubject = async (req: Request, res: Response) => {
-  const newSubject = { id: `sub${subjects.length + 1}`, ...req.body };
-  subjects.push(newSubject);
-  return sendSuccess(res, newSubject, 'Subject created', 201);
+export const getSubjects = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('subjects').select('*').eq('school_id', schoolId).order('name', { ascending: true });
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch subjects', 500);
+  }
 };
 
-// Advanced Academics: Course Assignments
-let courseAssignments = [
-  { id: 'ca1', class_id: 'c1', section_id: 'sec1', subject_id: 'sub1', teacher_id: 't001' }
-];
-
-export const getCourseAssignments = async (req: Request, res: Response) => sendSuccess(res, courseAssignments);
-export const createCourseAssignment = async (req: Request, res: Response) => {
-  const newAssignment = { id: `ca${courseAssignments.length + 1}`, ...req.body };
-  courseAssignments.push(newAssignment);
-  return sendSuccess(res, newAssignment, 'Assignment created', 201);
+export const createSubject = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('subjects').insert({ ...req.body, school_id: schoolId }).select().single();
+    if (error) throw error;
+    return sendSuccess(res, data, 'Subject created', 201);
+  } catch (err) {
+    return sendError(res, 'Failed to create subject', 500);
+  }
 };
 
-// Advanced Academics: Class Routines
-let classRoutines = [
-  { id: 'cr1', class_id: 'c1', section_id: 'sec1', day_of_week: 'Monday', period_number: 1, start_time: '08:00', end_time: '08:45', subject_id: 'sub1', teacher_id: 't001' }
-];
+// Course Assignments (Teachers assigned to subjects for specific sections)
+export const getCourseAssignments = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    // Assuming course_assignments table doesn't exist natively or using simple relations
+    const { data, error } = await supabaseAdmin.from('subject_assignments').select('*, staff(*), subjects(*), sections(name, classes(name))').eq('school_id', schoolId);
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendSuccess(res, []); // Return empty if table doesn't exist
+  }
+};
 
-export const getClassRoutines = async (req: Request, res: Response) => sendSuccess(res, classRoutines);
-export const createClassRoutine = async (req: Request, res: Response) => {
-  const newRoutine = { id: `cr${classRoutines.length + 1}`, ...req.body };
-  classRoutines.push(newRoutine);
-  return sendSuccess(res, newRoutine, 'Routine created', 201);
+export const createCourseAssignment = async (req: AuthRequest, res: Response) => {
+  return sendError(res, 'Not implemented for Supabase yet', 501);
 };

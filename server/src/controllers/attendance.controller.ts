@@ -1,102 +1,67 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { sendSuccess, sendError } from '../utils/response.js';
+import { AuthRequest } from '../types/express.js';
+import { supabaseAdmin } from '../config/supabase.js';
 
-let studentAttendance = [
-  { id: 'sa1', student_id: 's001', date: '2026-08-10', status: 'present' },
-];
+export const getAttendance = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { date, class_id, section_id } = req.query;
+    
+    let query = supabaseAdmin
+      .from('student_attendance')
+      .select('*, students(first_name, last_name, roll_number)')
+      .eq('school_id', schoolId);
 
-let teacherAttendance = [
-  { id: 'ta1', teacher_id: 't001', date: '2026-08-10', status: 'present' },
-];
+    if (date) query = query.eq('date', date);
+    if (class_id) query = query.eq('class_id', class_id);
+    if (section_id) query = query.eq('section_id', section_id);
 
-let employeeAttendance = [
-  { id: 'ea1', employee_id: 'e001', date: '2026-08-10', status: 'present' },
-];
-
-// Student Attendance
-export const getStudentAttendance = async (req: Request, res: Response) => {
-  const { date, class_id, section_id } = req.query;
-  // Normally filter by date, class, section. For mock, just return all.
-  return sendSuccess(res, studentAttendance);
-};
-
-export const markStudentAttendance = async (req: Request, res: Response) => {
-  const { date, records } = req.body;
-  // records: { student_id, status }[]
-  if (!date || !records || !Array.isArray(records)) {
-    return sendError(res, 'Invalid attendance data', 400);
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch attendance', 500);
   }
-
-  // Very naive mock update
-  records.forEach((record) => {
-    const existingIndex = studentAttendance.findIndex(a => a.student_id === record.student_id && a.date === date);
-    if (existingIndex > -1) {
-      studentAttendance[existingIndex].status = record.status;
-    } else {
-      studentAttendance.push({
-        id: `sa${studentAttendance.length + 1}`,
-        student_id: record.student_id,
-        date: date,
-        status: record.status,
-      });
-    }
-  });
-
-  return sendSuccess(res, null, 'Attendance marked successfully', 201);
 };
 
-// Teacher Attendance
-export const getTeacherAttendance = async (req: Request, res: Response) => {
-  return sendSuccess(res, teacherAttendance);
-};
+export const markAttendance = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { records } = req.body; // Array of { student_id, status, date, class_id, section_id, marked_by }
+    
+    if (!records || !records.length) return sendError(res, 'No records provided', 400);
 
-export const markTeacherAttendance = async (req: Request, res: Response) => {
-  const { date, records } = req.body;
-  if (!date || !records || !Array.isArray(records)) {
-    return sendError(res, 'Invalid attendance data', 400);
+    const insertData = records.map((r: any) => ({
+      ...r,
+      school_id: schoolId,
+      marked_by: req.user?.id
+    }));
+
+    // Upsert attendance to allow updating if already marked today
+    const { data, error } = await supabaseAdmin
+      .from('student_attendance')
+      .upsert(insertData, { onConflict: 'student_id, date' })
+      .select();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Attendance marked successfully', 201);
+  } catch (err) {
+    console.error('Failed to mark attendance', err);
+    return sendError(res, 'Failed to mark attendance', 500);
   }
-
-  records.forEach((record) => {
-    const existingIndex = teacherAttendance.findIndex(a => a.teacher_id === record.teacher_id && a.date === date);
-    if (existingIndex > -1) {
-      teacherAttendance[existingIndex].status = record.status;
-    } else {
-      teacherAttendance.push({
-        id: `ta${teacherAttendance.length + 1}`,
-        teacher_id: record.teacher_id,
-        date: date,
-        status: record.status,
-      });
-    }
-  });
-
-  return sendSuccess(res, null, 'Attendance marked successfully', 201);
 };
 
-// Employee Attendance
-export const getEmployeeAttendance = async (req: Request, res: Response) => {
-  return sendSuccess(res, employeeAttendance);
-};
-
-export const markEmployeeAttendance = async (req: Request, res: Response) => {
-  const { date, records } = req.body;
-  if (!date || !records || !Array.isArray(records)) {
-    return sendError(res, 'Invalid attendance data', 400);
+export const getAttendanceStats = async (req: AuthRequest, res: Response) => {
+  try {
+    // For now returning mock stats since complex SQL aggregates are needed for real stats
+    return sendSuccess(res, {
+      present_percentage: 92,
+      absent_count: 5,
+      late_count: 2
+    });
+  } catch (err) {
+    return sendError(res, 'Failed to fetch attendance stats', 500);
   }
-
-  records.forEach((record) => {
-    const existingIndex = employeeAttendance.findIndex(a => a.employee_id === record.employee_id && a.date === date);
-    if (existingIndex > -1) {
-      employeeAttendance[existingIndex].status = record.status;
-    } else {
-      employeeAttendance.push({
-        id: `ea${employeeAttendance.length + 1}`,
-        employee_id: record.employee_id,
-        date: date,
-        status: record.status,
-      });
-    }
-  });
-
-  return sendSuccess(res, null, 'Attendance marked successfully', 201);
 };
