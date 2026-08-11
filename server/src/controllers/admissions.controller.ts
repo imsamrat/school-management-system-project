@@ -55,7 +55,40 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
         
     if (error) throw error;
     
-    // If approved, ideally trigger student creation here via Supabase function or webhook
+    // Automatically create student if approved
+    if (status === 'approved') {
+      try {
+        // Get active academic year
+        const { data: academicYear } = await supabaseAdmin
+          .from('academic_years')
+          .select('id')
+          .eq('school_id', data.school_id)
+          .eq('status', 'active')
+          .single();
+
+        const admissionNumber = `ADM-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+        
+        const { error: studentError } = await supabaseAdmin
+          .from('students')
+          .insert({
+            school_id: data.school_id,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            date_of_birth: data.date_of_birth,
+            gender: data.gender,
+            previous_school: data.previous_school,
+            admission_number: admissionNumber,
+            academic_year_id: academicYear?.id,
+            status: 'active'
+          });
+
+        if (studentError) {
+          console.error('Failed to create student from application:', studentError);
+        }
+      } catch (err) {
+        console.error('Error during automatic student creation:', err);
+      }
+    }
     
     return sendSuccess(res, data, 'Application status updated');
   } catch (err) {
