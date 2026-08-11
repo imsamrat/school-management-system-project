@@ -24,7 +24,7 @@ export const createFeeStructure = async (req: AuthRequest, res: Response) => {
       .from('academic_years')
       .select('id')
       .eq('school_id', schoolId)
-      .eq('status', 'active')
+      .eq('is_current', true)
       .single();
 
     if (yearError || !activeYear) {
@@ -65,7 +65,7 @@ export const createInvoice = async (req: AuthRequest, res: Response) => {
       .from('academic_years')
       .select('id')
       .eq('school_id', schoolId)
-      .eq('status', 'active')
+      .eq('is_current', true)
       .single();
 
     if (yearError || !activeYear) {
