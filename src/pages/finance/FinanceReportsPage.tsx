@@ -80,6 +80,13 @@ export default function FinanceReportsPage() {
           </button>
         </div>
       </div>
+      
+      {view === 'expense' && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex justify-between items-center">
+          <p className="text-orange-800 text-sm">You are viewing the expense overview report.</p>
+          <a href="/finance/expenses" className="btn-secondary bg-white text-sm">Manage Expenses</a>
+        </div>
+      )}
 
       {/* KPI Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

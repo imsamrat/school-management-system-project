@@ -54,6 +54,7 @@ import StudentFeesPage from '@/pages/finance/StudentFeesPage';
 import PaymentHistoryPage from '@/pages/finance/PaymentHistoryPage';
 import FeeReceiptPage from '@/pages/finance/FeeReceiptPage';
 import CollectFeesPage from '@/pages/finance/CollectFeesPage';
+import ExpensesPage from '@/pages/finance/ExpensesPage';
 import FinanceReportsPage from '@/pages/finance/FinanceReportsPage';
 
 // Library
@@ -160,6 +161,7 @@ export const router = createBrowserRouter([
       { path: 'finance/receipts/:id', element: <FeeReceiptPage /> },
       { path: 'finance/collect', element: <CollectFeesPage /> },
       { path: 'finance/payments', element: <PaymentHistoryPage /> },
+      { path: 'finance/expenses', element: <ExpensesPage /> },
       { path: 'finance/reports', element: <FinanceReportsPage /> },
       { path: 'finance/refunds', element: <PlaceholderPage /> },
 

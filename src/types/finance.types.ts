@@ -25,3 +25,25 @@ export interface Payment {
   reference_number?: string;
   payment_date: string;
 }
+
+export interface ExpenseCategory {
+  id: string;
+  school_id: string;
+  name: string;
+  description?: string;
+  created_at?: string;
+}
+
+export interface Expense {
+  id: string;
+  school_id: string;
+  category_id: string;
+  category_name?: string;
+  amount: number;
+  expense_date: string;
+  title: string;
+  description?: string;
+  receipt_url?: string;
+  recorded_by?: string;
+  created_at?: string;
+}

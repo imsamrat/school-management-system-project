@@ -17,6 +17,7 @@ import documentsRoutes from './documents.routes.js';
 import reportsRoutes from './reports.routes.js';
 import notificationsRoutes from './notifications.routes.js';
 import searchRoutes from './search.routes.js';
+import expenseRoutes from './expense.routes.js';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.use('/exams', examRoutes);
 router.use('/finance', financeRoutes);
 router.use('/library', libraryRoutes);
 router.use('/payroll', payrollRoutes);
+router.use('/expenses', expenseRoutes);
 router.use('/documents', documentsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/settings', settingsRoutes);
