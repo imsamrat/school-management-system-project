@@ -28,9 +28,13 @@ export default function StudentListPage() {
       header: 'Student Name',
       cell: (row) => (
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-xs">
-            {row.first_name[0]}{row.last_name[0]}
-          </div>
+          {row.photo_url ? (
+            <img src={row.photo_url} alt={`${row.first_name} ${row.last_name}`} className="h-8 w-8 rounded-full object-cover border border-gray-200" />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-xs">
+              {row.first_name?.[0] || ''}{row.last_name?.[0] || ''}
+            </div>
+          )}
           <div>
             <div className="font-medium text-gray-900">{row.first_name} {row.last_name}</div>
           </div>
@@ -41,8 +45,8 @@ export default function StudentListPage() {
       header: 'Class/Section',
       cell: (row) => (
         <span className="text-gray-600">
-          {/* Note: in a real app, join with class/section data */}
-          {row.class_id} - {row.section_id} (Roll: {row.roll_number})
+          {row.classes?.name || 'Unassigned'} {row.sections?.name ? `- ${row.sections.name}` : ''} 
+          {row.roll_number ? ` (Roll: ${row.roll_number})` : ''}
         </span>
       ),
     },

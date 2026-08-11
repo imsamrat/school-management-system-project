@@ -8,4 +8,7 @@ export interface Student {
   section_id: string;
   roll_number?: string;
   status: string;
+  photo_url?: string;
+  classes?: { name: string };
+  sections?: { name: string };
 }
