@@ -75,7 +75,7 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
             first_name: data.first_name,
             last_name: data.last_name,
             date_of_birth: data.date_of_birth,
-            gender: data.gender,
+            gender: data.gender?.toLowerCase(),
             previous_school: data.previous_school,
             admission_number: admissionNumber,
             academic_year_id: academicYear?.id,

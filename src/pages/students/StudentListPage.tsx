@@ -69,6 +69,14 @@ export default function StudentListPage() {
           <button className="btn-secondary hidden sm:flex items-center gap-2">
             <Download className="w-4 h-4" /> Export
           </button>
+          {hasPermission('students.create') && (
+            <button 
+              onClick={() => navigate('/students/new')}
+              className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Student
+            </button>
+          )}
         </div>
       </div>
 

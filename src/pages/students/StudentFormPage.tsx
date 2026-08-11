@@ -3,17 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { useCreateStudentMutation } from '@/features/students/studentApi';
 import { ArrowLeft, Save } from 'lucide-react';
 import { ImageUpload } from '@/components/common/ImageUpload';
+import { useGetClassesQuery, useGetSectionsQuery } from '@/features/academics/academicApi';
 
 export default function StudentFormPage() {
   const navigate = useNavigate();
   const [createStudent, { isLoading }] = useCreateStudentMutation();
+  const { data: classesRes } = useGetClassesQuery();
+  const { data: sectionsRes } = useGetSectionsQuery();
+  
+  const classes = classesRes?.data || [];
+  const sections = sectionsRes?.data || [];
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     admission_number: '',
     gender: 'male',
-    class_id: 'c1',
-    section_id: 'sec1',
+    class_id: '',
+    section_id: '',
     photo_url: '',
   });
 
@@ -93,15 +100,15 @@ export default function StudentFormPage() {
               <div>
                 <label className="label">Class *</label>
                 <select required name="class_id" value={formData.class_id} onChange={handleChange} className="input-field">
-                  <option value="c1">Class 1</option>
-                  <option value="c2">Class 2</option>
+                  <option value="">Select Class...</option>
+                  {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">Section *</label>
                 <select required name="section_id" value={formData.section_id} onChange={handleChange} className="input-field">
-                  <option value="sec1">Section A</option>
-                  <option value="sec2">Section B</option>
+                  <option value="">Select Section...</option>
+                  {sections.filter(s => s.class_id === formData.class_id).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
             </div>
