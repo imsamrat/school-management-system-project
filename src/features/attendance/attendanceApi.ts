@@ -30,6 +30,10 @@ export const attendanceApi = api.injectEndpoints({
       query: (body) => ({ url: '/attendance/employees', method: 'POST', body }),
       invalidatesTags: ['Attendance'],
     }),
+    getSingleStudentAttendance: builder.query<ApiResponse<AttendanceRecord[]>, string>({
+      query: (studentId) => `/attendance/students/${studentId}`,
+      providesTags: (_result, _error, id) => [{ type: 'Attendance', id: `student-${id}` }, 'Attendance'],
+    }),
   }),
 });
 
@@ -40,4 +44,5 @@ export const {
   useMarkTeacherAttendanceMutation,
   useGetEmployeeAttendanceQuery,
   useMarkEmployeeAttendanceMutation,
+  useGetSingleStudentAttendanceQuery,
 } = attendanceApi;

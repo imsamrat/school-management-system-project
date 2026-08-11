@@ -98,3 +98,28 @@ export const saveMarks = async (req: AuthRequest, res: Response) => {
     return sendError(res, 'Failed to submit marks', 500);
   }
 };
+
+export const getStudentMarks = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // We want to fetch student marks and join with exam_subjects and exams
+    const { data, error } = await supabaseAdmin
+      .from('student_marks')
+      .select(`
+        *,
+        exam_subjects (
+          *,
+          exams (name, exam_type, start_date),
+          subjects (name, code)
+        )
+      `)
+      .eq('student_id', id);
+
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    console.error('Error fetching student marks:', err);
+    return sendError(res, 'Failed to fetch student marks', 500);
+  }
+};

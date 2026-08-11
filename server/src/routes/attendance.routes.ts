@@ -9,6 +9,7 @@ router.use(authenticate);
 
 // Student Attendance
 router.get('/students', requirePermission('attendance.view'), attendanceController.getStudentAttendance);
+router.get('/students/:id', requirePermission('attendance.view'), attendanceController.getSingleStudentAttendance);
 router.post('/students', requirePermission('attendance.mark'), attendanceController.markStudentAttendance);
 
 // Teacher Attendance

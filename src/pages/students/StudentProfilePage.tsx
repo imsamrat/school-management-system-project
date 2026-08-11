@@ -5,12 +5,17 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useState } from 'react';
 import { usePermission } from '@/hooks/usePermission';
+import { GuardiansList } from './components/GuardiansList';
+import { AttendanceTab } from './components/AttendanceTab';
+import { MarksTab } from './components/MarksTab';
+import { FeesTab } from './components/FeesTab';
 
 export default function StudentProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { hasPermission } = usePermission();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'attendance' | 'marks' | 'fees'>('overview');
   
   const { data: response, isLoading } = useGetStudentByIdQuery(id!);
   const [deleteStudent, { isLoading: isDeleting }] = useDeleteStudentMutation();
@@ -73,9 +78,13 @@ export default function StudentProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Profile Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center text-center">
-          <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-3xl font-bold mb-4">
-            {student.first_name[0]}{student.last_name[0]}
-          </div>
+          {student.photo_url ? (
+            <img src={student.photo_url} alt={`${student.first_name} ${student.last_name}`} className="w-24 h-24 rounded-full object-cover border border-gray-200 mb-4" />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-3xl font-bold mb-4">
+              {student.first_name[0]}{student.last_name[0]}
+            </div>
+          )}
           <h2 className="text-xl font-bold text-gray-900">{student.first_name} {student.last_name}</h2>
           <p className="text-gray-500 text-sm mt-1">{student.admission_number}</p>
           <div className="mt-3">
@@ -86,8 +95,10 @@ export default function StudentProfilePage() {
             <div className="flex items-start gap-3">
               <GraduationCap className="w-5 h-5 text-gray-400 shrink-0" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Class {student.class_id} - Section {student.section_id}</p>
-                <p className="text-xs text-gray-500">Roll No: {student.roll_number}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {student.classes?.name || 'Unassigned Class'} {student.sections?.name ? `- ${student.sections.name}` : ''}
+                </p>
+                {student.roll_number && <p className="text-xs text-gray-500">Roll No: {student.roll_number}</p>}
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -104,30 +115,37 @@ export default function StudentProfilePage() {
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="border-b border-gray-200 px-6">
             <nav className="flex space-x-6">
-              <a href="#" className="py-4 px-1 border-b-2 border-primary-600 font-medium text-sm text-primary-700">Overview</a>
-              <a href="#" className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">Attendance</a>
-              <a href="#" className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">Marks</a>
-              <a href="#" className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">Fees</a>
+              <button 
+                onClick={() => setActiveTab('overview')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'overview' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              >
+                Overview
+              </button>
+              <button 
+                onClick={() => setActiveTab('attendance')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'attendance' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              >
+                Attendance
+              </button>
+              <button 
+                onClick={() => setActiveTab('marks')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'marks' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              >
+                Marks
+              </button>
+              <button 
+                onClick={() => setActiveTab('fees')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'fees' ? 'border-primary-600 text-primary-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              >
+                Fees
+              </button>
             </nav>
           </div>
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Guardian Details</h3>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 flex items-start gap-4">
-              <div className="p-3 bg-white rounded-full shadow-sm">
-                <User className="w-5 h-5 text-gray-500" />
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900">Father Name Placeholder</h4>
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-gray-400" /> +1 234 567 890
-                  </p>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400" /> 123 Main St, City
-                  </p>
-                </div>
-              </div>
-            </div>
+            {activeTab === 'overview' && <GuardiansList studentId={student.id} />}
+            {activeTab === 'attendance' && <AttendanceTab studentId={student.id} />}
+            {activeTab === 'marks' && <MarksTab studentId={student.id} />}
+            {activeTab === 'fees' && <FeesTab studentId={student.id} />}
           </div>
         </div>
       </div>

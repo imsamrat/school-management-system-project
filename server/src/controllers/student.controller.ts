@@ -116,3 +116,65 @@ export const deleteStudent = async (req: AuthRequest, res: Response) => {
     return sendError(res, 'Failed to delete student', 500);
   }
 };
+
+export const getStudentGuardians = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabaseAdmin
+      .from('student_guardians')
+      .select('*')
+      .eq('student_id', id)
+      .order('is_primary', { ascending: false });
+
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    console.error('Error fetching guardians:', err);
+    return sendError(res, 'Failed to fetch guardians', 500);
+  }
+};
+
+export const addStudentGuardian = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // If this is set as primary, unset others first
+    if (req.body.is_primary) {
+      await supabaseAdmin
+        .from('student_guardians')
+        .update({ is_primary: false })
+        .eq('student_id', id);
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('student_guardians')
+      .insert({
+        ...req.body,
+        student_id: id
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Guardian added successfully', 201);
+  } catch (err) {
+    console.error('Error adding guardian:', err);
+    return sendError(res, 'Failed to add guardian', 500);
+  }
+};
+
+export const deleteStudentGuardian = async (req: AuthRequest, res: Response) => {
+  try {
+    const { guardianId } = req.params;
+    const { error } = await supabaseAdmin
+      .from('student_guardians')
+      .delete()
+      .eq('id', guardianId);
+
+    if (error) throw error;
+    return sendSuccess(res, null, 'Guardian deleted successfully');
+  } catch (err) {
+    console.error('Error deleting guardian:', err);
+    return sendError(res, 'Failed to delete guardian', 500);
+  }
+};

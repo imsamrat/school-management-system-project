@@ -123,3 +123,20 @@ export const getAttendanceStats = async (req: AuthRequest, res: Response) => {
     return sendError(res, 'Failed to fetch attendance stats', 500);
   }
 };
+
+export const getSingleStudentAttendance = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabaseAdmin
+      .from('student_attendance')
+      .select('*')
+      .eq('student_id', id)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    console.error('Error fetching student attendance:', err);
+    return sendError(res, 'Failed to fetch attendance', 500);
+  }
+};

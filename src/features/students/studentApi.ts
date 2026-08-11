@@ -38,6 +38,25 @@ export const studentApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Students'],
     }),
+    getStudentGuardians: builder.query<ApiResponse<any[]>, string>({
+      query: (studentId) => `/students/${studentId}/guardians`,
+      providesTags: (_result, _error, id) => [{ type: 'Students', id: `guardians-${id}` }],
+    }),
+    addStudentGuardian: builder.mutation<ApiResponse<any>, { studentId: string; body: any }>({
+      query: ({ studentId, body }) => ({
+        url: `/students/${studentId}/guardians`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (_result, _error, { studentId }) => [{ type: 'Students', id: `guardians-${studentId}` }],
+    }),
+    deleteStudentGuardian: builder.mutation<ApiResponse, { guardianId: string; studentId: string }>({
+      query: ({ guardianId }) => ({
+        url: `/students/guardians/${guardianId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_result, _error, { studentId }) => [{ type: 'Students', id: `guardians-${studentId}` }],
+    }),
   }),
 });
 
@@ -47,4 +66,7 @@ export const {
   useCreateStudentMutation,
   useUpdateStudentMutation,
   useDeleteStudentMutation,
+  useGetStudentGuardiansQuery,
+  useAddStudentGuardianMutation,
+  useDeleteStudentGuardianMutation,
 } = studentApi;

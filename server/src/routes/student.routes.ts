@@ -13,4 +13,9 @@ router.post('/', requirePermission('students.create'), studentController.createS
 router.put('/:id', requirePermission('students.edit'), studentController.updateStudent);
 router.delete('/:id', requirePermission('students.delete'), studentController.deleteStudent);
 
+// Guardian routes
+router.get('/:id/guardians', requirePermission('students.view'), studentController.getStudentGuardians);
+router.post('/:id/guardians', requirePermission('students.edit'), studentController.addStudentGuardian);
+router.delete('/guardians/:guardianId', requirePermission('students.edit'), studentController.deleteStudentGuardian);
+
 export default router;

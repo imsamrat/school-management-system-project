@@ -19,4 +19,7 @@ router.post('/invoices', requirePermission('finance.manage'), financeController.
 router.get('/payments', requirePermission('finance.view'), financeController.getPayments);
 router.post('/payments/collect', requirePermission('finance.collect'), financeController.collectPayment);
 
+// Student Fees
+router.get('/student/:id/fees', requirePermission('finance.view'), financeController.getStudentFees);
+
 export default router;

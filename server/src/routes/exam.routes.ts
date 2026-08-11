@@ -18,6 +18,7 @@ router.post('/schedules', requirePermission('exams.manage'), examController.crea
 
 // Marks
 router.get('/marks', requirePermission('marks.view'), examController.getMarks);
+router.get('/student/:id/marks', requirePermission('marks.view'), examController.getStudentMarks);
 router.post('/marks', requirePermission('marks.enter'), examController.saveMarks);
 
 export default router;

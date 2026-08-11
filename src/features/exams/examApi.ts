@@ -30,6 +30,10 @@ export const examApi = api.injectEndpoints({
       query: (body) => ({ url: '/exams/marks', method: 'POST', body }),
       invalidatesTags: ['Marks'],
     }),
+    getStudentMarks: builder.query<ApiResponse<any[]>, string>({
+      query: (studentId) => `/exams/student/${studentId}/marks`,
+      providesTags: (_result, _error, id) => [{ type: 'Marks', id: `student-${id}` }, 'Marks'],
+    }),
   }),
 });
 
@@ -40,4 +44,5 @@ export const {
   useCreateExamScheduleMutation,
   useGetMarksQuery,
   useSaveMarksMutation,
+  useGetStudentMarksQuery,
 } = examApi;

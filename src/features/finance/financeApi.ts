@@ -30,6 +30,10 @@ export const financeApi = api.injectEndpoints({
       query: (body) => ({ url: '/finance/payments/collect', method: 'POST', body }),
       invalidatesTags: ['FeePayments', 'FeeInvoices'],
     }),
+    getStudentFees: builder.query<ApiResponse<{ invoices: Invoice[], payments: Payment[] }>, string>({
+      query: (studentId) => `/finance/student/${studentId}/fees`,
+      providesTags: (_result, _error, id) => [{ type: 'FeeInvoices', id: `student-${id}` }, { type: 'FeePayments', id: `student-${id}` }, 'FeeInvoices', 'FeePayments'],
+    }),
   }),
 });
 
@@ -40,4 +44,5 @@ export const {
   useCreateInvoiceMutation,
   useGetPaymentsQuery,
   useCollectPaymentMutation,
+  useGetStudentFeesQuery,
 } = financeApi;

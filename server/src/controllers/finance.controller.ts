@@ -120,3 +120,32 @@ export const getFeeTypes = async (req: AuthRequest, res: Response) => {
     return sendError(res, 'Failed to fetch fee types', 500);
   }
 };
+
+export const getStudentFees = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Fetch invoices
+    const { data: invoices, error: invError } = await supabaseAdmin
+      .from('fee_invoices')
+      .select('*, fee_structures(*)')
+      .eq('student_id', id)
+      .order('created_at', { ascending: false });
+      
+    if (invError) throw invError;
+    
+    // Fetch payments
+    const { data: payments, error: payError } = await supabaseAdmin
+      .from('fee_payments')
+      .select('*')
+      .eq('student_id', id)
+      .order('paid_date', { ascending: false });
+      
+    if (payError) throw payError;
+    
+    return sendSuccess(res, { invoices, payments });
+  } catch (err) {
+    console.error('Error fetching student fees:', err);
+    return sendError(res, 'Failed to fetch student fees', 500);
+  }
+};
