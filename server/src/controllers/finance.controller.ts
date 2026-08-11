@@ -15,11 +15,89 @@ export const getFeeStructures = async (req: AuthRequest, res: Response) => {
 };
 
 export const createFeeStructure = async (req: AuthRequest, res: Response) => {
-  return sendError(res, 'Not implemented for Supabase yet', 501);
+  try {
+    const schoolId = req.user?.schoolId;
+    const { class_id, fee_type_id, amount, frequency, due_day, description } = req.body;
+
+    // Get active academic year
+    const { data: activeYear, error: yearError } = await supabaseAdmin
+      .from('academic_years')
+      .select('id')
+      .eq('school_id', schoolId)
+      .eq('status', 'active')
+      .single();
+
+    if (yearError || !activeYear) {
+      return sendError(res, 'No active academic year found', 400);
+    }
+
+    // Insert fee structure
+    const { data, error } = await supabaseAdmin
+      .from('fee_structures')
+      .insert({
+        school_id: schoolId,
+        academic_year_id: activeYear.id,
+        class_id,
+        fee_type_id,
+        amount,
+        frequency: frequency || 'monthly',
+        due_day: due_day || 10,
+        description
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Fee structure created successfully', 201);
+  } catch (err) {
+    console.error('Error creating fee structure:', err);
+    return sendError(res, 'Failed to create fee structure', 500);
+  }
 };
 
 export const createInvoice = async (req: AuthRequest, res: Response) => {
-  return sendError(res, 'Not implemented for Supabase yet', 501);
+  try {
+    const schoolId = req.user?.schoolId;
+    const { student_id, fee_structure_id, amount, discount = 0, due_date } = req.body;
+
+    // Get active academic year
+    const { data: activeYear, error: yearError } = await supabaseAdmin
+      .from('academic_years')
+      .select('id')
+      .eq('school_id', schoolId)
+      .eq('status', 'active')
+      .single();
+
+    if (yearError || !activeYear) {
+      return sendError(res, 'No active academic year found', 400);
+    }
+
+    const net_amount = Number(amount) - Number(discount);
+    // Generate invoice number e.g. INV-2026-XXXX
+    const invoice_number = `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+    const { data, error } = await supabaseAdmin
+      .from('fee_invoices')
+      .insert({
+        school_id: schoolId,
+        invoice_number,
+        student_id,
+        academic_year_id: activeYear.id,
+        fee_structure_id,
+        amount,
+        discount,
+        net_amount,
+        due_date
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Invoice created successfully', 201);
+  } catch (err) {
+    console.error('Error creating invoice:', err);
+    return sendError(res, 'Failed to create invoice', 500);
+  }
 };
 
 export const getPayments = async (req: AuthRequest, res: Response) => {
