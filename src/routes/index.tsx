@@ -159,7 +159,7 @@ export const router = createBrowserRouter([
       { path: 'finance/history', element: <PaymentHistoryPage /> },
       { path: 'finance/receipts/:id', element: <FeeReceiptPage /> },
       { path: 'finance/collect', element: <CollectFeesPage /> },
-      { path: 'finance/payments', element: <CollectFeesPage /> },
+      { path: 'finance/payments', element: <PaymentHistoryPage /> },
       { path: 'finance/reports', element: <FinanceReportsPage /> },
       { path: 'finance/refunds', element: <PlaceholderPage /> },
 
