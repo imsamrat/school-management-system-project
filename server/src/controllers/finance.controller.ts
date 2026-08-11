@@ -189,6 +189,11 @@ export const collectPayment = async (req: AuthRequest, res: Response) => {
         
     if (invoiceError || !invoice) return sendError(res, 'Invoice not found', 404);
     
+    const due_amount = Number(invoice.net_amount) - Number(invoice.paid_amount);
+    if (Number(amount) > due_amount) {
+        return sendError(res, 'Payment amount exceeds due amount', 400);
+    }
+    
     // Generate a unique receipt number
     const receipt_number = `REC-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
 
@@ -215,7 +220,7 @@ export const collectPayment = async (req: AuthRequest, res: Response) => {
     
     // 3. Update invoice status and paid amount
     const newPaidAmount = Number(invoice.paid_amount) + Number(amount);
-    const newStatus = newPaidAmount >= Number(invoice.total_amount) ? 'paid' : 'partial';
+    const newStatus = newPaidAmount >= Number(invoice.net_amount) ? 'paid' : 'partial';
     
     await supabaseAdmin
         .from('fee_invoices')
