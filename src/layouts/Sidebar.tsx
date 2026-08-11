@@ -140,6 +140,16 @@ const sidebarConfig: SidebarItem[] = [
     ],
   },
   {
+    label: 'Library',
+    icon: BookOpen,
+    permission: 'library.view',
+    children: [
+      { label: 'Book Inventory', href: '/library/books', permission: 'library.view' },
+      { label: 'Issue Book', href: '/library/issue', permission: 'library.manage' },
+      { label: 'Return Book', href: '/library/return', permission: 'library.manage' },
+    ],
+  },
+  {
     label: 'Documents',
     icon: FileText,
     permission: 'documents.manage',

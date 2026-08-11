@@ -13,6 +13,8 @@ import {
   Settings,
   ChevronDown,
 } from 'lucide-react';
+import GlobalSearch from '@/components/common/GlobalSearch';
+import NotificationDropdown from '@/components/common/NotificationDropdown';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -71,19 +73,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
         {/* Search */}
         <div className="hidden sm:flex items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              ref={searchRef}
-              type="text"
-              placeholder="Search... (Ctrl+K)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 w-64 lg:w-80 text-sm bg-gray-50 border border-gray-200 rounded-lg
-                focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 focus:bg-white
-                transition-all placeholder:text-gray-400"
-            />
-          </div>
+          <GlobalSearch />
         </div>
       </div>
 
@@ -98,10 +88,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         </button>
 
         {/* Notifications */}
-        <button className="btn-icon relative" id="notification-bell">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        <NotificationDropdown />
 
         {/* User menu */}
         <div className="relative" ref={menuRef}>

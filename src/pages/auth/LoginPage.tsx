@@ -1,161 +1,162 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setCredentials } from '@/features/auth/authSlice';
+import { useNavigate } from 'react-router-dom';
+import { GraduationCap, Mail, Lock, Loader2, ShieldCheck, UserCheck, BookOpen, Users } from 'lucide-react';
 import { useLoginMutation } from '@/features/auth/authApi';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
-import type { User } from '@/types';
+import { setCredentials } from '@/features/auth/authSlice';
 
-// Demo user for Phase 1 — will be replaced by actual Supabase auth
-const DEMO_USER: User = {
-  id: 'u0000000-0000-0000-0000-000000000001',
-  schoolId: '550e8400-e29b-41d4-a716-446655440000',
-  email: 'admin@greenvalley.edu',
-  fullName: 'System Administrator',
-  phone: '+880-1711111111',
-  isActive: true,
-  roles: [{ id: 'a0000000-0000-0000-0000-000000000001', name: 'Super Admin', isSystemRole: true }],
-  permissions: [
-    'dashboard.view', 'students.view', 'students.create', 'students.edit', 'students.delete',
-    'teachers.view', 'teachers.create', 'teachers.edit',
-    'employees.view', 'employees.create', 'employees.edit',
-    'attendance.view', 'attendance.mark', 'attendance.edit',
-    'exams.view', 'exams.create', 'exams.manage',
-    'marks.view', 'marks.enter', 'marks.edit', 'marks.publish',
-    'fees.view', 'fees.collect', 'fees.refund', 'fees.report',
-    'payroll.view', 'payroll.process', 'payroll.approve',
-    'reports.view', 'reports.export',
-    'documents.manage', 'settings.manage', 'users.manage', 'audit.view',
-    'admissions.view', 'admissions.manage', 'notifications.view',
-  ],
-};
+type Role = 'admin' | 'teacher' | 'student' | 'parent';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@greenvalley.edu');
-  const [password, setPassword] = useState('admin123');
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('admin@school.com');
+  const [password, setPassword] = useState('password123');
+  const [role, setRole] = useState<Role>('admin');
   const [error, setError] = useState('');
-  const [loginMutation, { isLoading }] = useLoginMutation();
+  
+  const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const handleRoleSelect = (selectedRole: Role) => {
+    setRole(selectedRole);
+    setEmail(`${selectedRole}@school.com`);
+    setPassword('password123');
+    setError('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+    
     try {
-      const response = await loginMutation({ email, password }).unwrap();
-      if (response.success && response.data) {
-        dispatch(
-          setCredentials({
-            user: response.data.user,
-            token: response.data.token,
-          })
-        );
-        navigate('/');
-      } else {
-        setError(response.message || 'Login failed');
-      }
+      const result = await login({ email, password }).unwrap();
+      dispatch(setCredentials({ user: result.data.user, token: result.data.token }));
+      navigate('/dashboard');
     } catch (err: any) {
-      setError(err?.data?.message || 'Invalid email or password');
+      setError(err.data?.message || 'Failed to login');
     }
   };
 
+  const roles = [
+    { id: 'admin', label: 'Admin', icon: ShieldCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
+    { id: 'teacher', label: 'Teacher', icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+    { id: 'student', label: 'Student', icon: UserCheck, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+    { id: 'parent', label: 'Parent', icon: Users, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
+  ];
+
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-      <p className="text-sm text-gray-500 mt-1">
-        Sign in to your School ERP account
-      </p>
-
-      {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {error}
+    <div className="w-full max-w-md">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 mb-4 shadow-inner">
+          <GraduationCap className="w-8 h-8 text-primary-600" />
         </div>
-      )}
+        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Welcome back</h2>
+        <p className="mt-2 text-sm text-gray-500 font-medium">Please sign in to your account</p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-        <div>
-          <label htmlFor="email" className="label">
-            Email Address
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input-field"
-            placeholder="admin@greenvalley.edu"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password" className="label">
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field pr-10"
-              placeholder="Enter your password"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+      <div className="bg-white/80 backdrop-blur-xl py-8 px-4 shadow-2xl sm:rounded-2xl sm:px-10 border border-white/20">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700">Select your role</label>
+            <div className="grid grid-cols-4 gap-2">
+              {roles.map((r) => {
+                const Icon = r.icon;
+                const isSelected = role === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => handleRoleSelect(r.id as Role)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                      isSelected 
+                        ? `${r.border} ${r.bg} ring-2 ring-offset-1 shadow-sm` 
+                        : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 mb-1.5 ${isSelected ? r.color : 'text-gray-400'}`} />
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? r.color : 'text-gray-500'}`}>
+                      {r.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              defaultChecked
-            />
-            <span className="text-sm text-gray-600">Remember me</span>
-          </label>
-          <a href="#" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-            Forgot password?
-          </a>
-        </div>
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email address</label>
+              <div className="mt-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input-field pl-10"
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="btn-primary w-full py-2.5"
-          id="login-button"
-        >
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Signing in...
-            </span>
-          ) : (
-            <span className="flex items-center gap-2">
-              <LogIn className="w-4 h-4" /> Sign in
-            </span>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <div className="mt-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field pl-10"
+                  placeholder="Enter your password"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
+            <div className="text-sm">
+              <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+                Forgot password?
+              </a>
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg text-center">
+              {error}
+            </div>
           )}
-        </button>
-      </form>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-xs font-medium text-gray-500 mb-2">Demo Credentials</p>
-        <div className="space-y-1 text-xs text-gray-600">
-          <p><span className="font-medium">Email:</span> admin@greenvalley.edu</p>
-          <p><span className="font-medium">Password:</span> admin123</p>
-        </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              'Sign in'
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );

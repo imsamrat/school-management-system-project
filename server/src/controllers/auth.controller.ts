@@ -22,13 +22,14 @@ export const login = async (req: Request, res: Response) => {
         'employees.view', 'employees.create', 'employees.edit',
         'attendance.view', 'attendance.mark', 'attendance.edit',
         'exams.view', 'exams.create', 'exams.manage',
+        'finance.view', 'finance.create', 'finance.manage',
         'marks.view', 'marks.enter', 'marks.edit', 'marks.publish',
         'fees.view', 'fees.collect', 'fees.refund', 'fees.report',
         'payroll.view', 'payroll.process', 'payroll.approve',
         'reports.view', 'reports.export',
         'documents.manage', 'settings.manage', 'users.manage', 'audit.view',
         'admissions.view', 'admissions.manage', 'notifications.view',
-      ], 
+      ],
     };
 
     const token = jwt.sign(user, config.jwtSecret, { expiresIn: '1d' });

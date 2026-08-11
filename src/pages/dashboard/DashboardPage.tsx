@@ -1,6 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { getGreeting, formatCurrency, formatNumber, formatPercentage } from '@/utils/format';
 import KPICard from '@/components/common/KPICard';
+import { useGetDashboardMetricsQuery } from '@/features/dashboard/dashboardApi';
 import {
   Users,
   GraduationCap,
@@ -78,15 +79,6 @@ const classDistribution = [
   { name: 'Class 5', value: 12, fill: '#14b8a6' },
 ];
 
-const recentActivities = [
-  { text: 'Fee payment received from Arif Rahman', time: '2 minutes ago', type: 'finance' },
-  { text: 'Attendance marked for Class 1 - Section A', time: '15 minutes ago', type: 'attendance' },
-  { text: 'New student Tamanna Akhter enrolled in Play Group', time: '1 hour ago', type: 'admission' },
-  { text: 'Mid Term exam schedule published', time: '2 hours ago', type: 'exam' },
-  { text: 'Payroll processed for August 2026', time: '3 hours ago', type: 'payroll' },
-  { text: 'Teacher Fatima Akter submitted leave application', time: '5 hours ago', type: 'leave' },
-];
-
 const upcomingEvents = [
   { title: 'Mid Term Examination', date: '15 Aug 2026', type: 'exam' },
   { title: 'Parent-Teacher Meeting', date: '20 Aug 2026', type: 'event' },
@@ -106,6 +98,22 @@ const quickActions = [
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: response } = useGetDashboardMetricsQuery();
+
+  const stats = response?.data || {
+    totalStudents: 0,
+    activeTeachers: 0,
+    totalEmployees: 0,
+    todayAttendance: 0,
+    pendingFees: 0,
+    todayCollection: 0,
+    booksIssued: 0,
+    recentActivities: []
+  };
+
+  const recentActivities = stats.recentActivities && stats.recentActivities.length > 0 
+    ? stats.recentActivities.map(a => ({ text: a.action, time: a.time, type: a.type }))
+    : [];
 
   return (
     <div className="space-y-6">
@@ -123,7 +131,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <KPICard
           title="Total Students"
-          value={formatNumber(210)}
+          value={formatNumber(stats.totalStudents)}
           icon={GraduationCap}
           iconColor="text-green-600"
           iconBg="bg-green-50"
@@ -131,21 +139,21 @@ export default function DashboardPage() {
         />
         <KPICard
           title="Active Teachers"
-          value={formatNumber(5)}
+          value={formatNumber(stats.activeTeachers)}
           icon={Users}
           iconColor="text-blue-600"
           iconBg="bg-blue-50"
         />
         <KPICard
           title="Total Employees"
-          value={formatNumber(10)}
+          value={formatNumber(stats.totalEmployees)}
           icon={Briefcase}
           iconColor="text-purple-600"
           iconBg="bg-purple-50"
         />
         <KPICard
           title="Today's Attendance"
-          value={formatPercentage(94.5)}
+          value={formatPercentage(stats.todayAttendance)}
           icon={CalendarCheck}
           iconColor="text-amber-600"
           iconBg="bg-amber-50"
@@ -153,14 +161,14 @@ export default function DashboardPage() {
         />
         <KPICard
           title="Pending Fees"
-          value={formatCurrency(75000)}
+          value={formatCurrency(stats.pendingFees)}
           icon={DollarSign}
           iconColor="text-red-600"
           iconBg="bg-red-50"
         />
         <KPICard
           title="Today's Collection"
-          value={formatCurrency(25000)}
+          value={formatCurrency(stats.todayCollection)}
           icon={Receipt}
           iconColor="text-emerald-600"
           iconBg="bg-emerald-50"
