@@ -17,7 +17,7 @@ export const getFeeStructures = async (req: AuthRequest, res: Response) => {
 export const createFeeStructure = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
-    const { class_id, fee_type_id, amount, frequency, due_day, description } = req.body;
+    const { class_id, fee_type_id, name, amount, frequency, due_day, description } = req.body;
 
     // Get active academic year
     const { data: activeYear, error: yearError } = await supabaseAdmin
@@ -31,6 +31,34 @@ export const createFeeStructure = async (req: AuthRequest, res: Response) => {
       return sendError(res, 'No active academic year found', 400);
     }
 
+    let finalFeeTypeId = fee_type_id;
+
+    // If name is provided instead of fee_type_id, find or create the fee_type
+    if (!finalFeeTypeId && name) {
+      const { data: existingType } = await supabaseAdmin
+        .from('fee_types')
+        .select('id')
+        .eq('school_id', schoolId)
+        .eq('name', name)
+        .single();
+
+      if (existingType) {
+        finalFeeTypeId = existingType.id;
+      } else {
+        const { data: newType, error: typeError } = await supabaseAdmin
+          .from('fee_types')
+          .insert({ school_id: schoolId, name })
+          .select()
+          .single();
+        if (typeError) throw typeError;
+        finalFeeTypeId = newType.id;
+      }
+    }
+
+    if (!finalFeeTypeId) {
+      return sendError(res, 'Fee type is required', 400);
+    }
+
     // Insert fee structure
     const { data, error } = await supabaseAdmin
       .from('fee_structures')
@@ -38,7 +66,7 @@ export const createFeeStructure = async (req: AuthRequest, res: Response) => {
         school_id: schoolId,
         academic_year_id: activeYear.id,
         class_id,
-        fee_type_id,
+        fee_type_id: finalFeeTypeId,
         amount,
         frequency: frequency || 'monthly',
         due_day: due_day || 10,
