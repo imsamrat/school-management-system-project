@@ -31,11 +31,11 @@ export default function CollectFeesPage() {
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
   const pendingInvoices = invoices.filter(inv => inv.status !== 'paid');
-  const totalPending = pendingInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalPending = pendingInvoices.reduce((sum, inv) => sum + (inv.due_amount || inv.net_amount || inv.amount), 0);
 
   const openCollect = (invoice: any) => {
     setSelectedInvoice(invoice);
-    setPaymentData({ amount: invoice.amount, payment_method: 'cash', reference_number: '' });
+    setPaymentData({ amount: invoice.due_amount || invoice.net_amount || invoice.amount, payment_method: 'cash', reference_number: '' });
     setShowModal(true);
   };
 
@@ -55,8 +55,13 @@ export default function CollectFeesPage() {
   };
 
   const columns: Column<any>[] = [
-    { header: 'Title', cell: row => <span className="font-semibold text-gray-900">{row.title}</span> },
-    { header: 'Amount', cell: row => <span className="font-bold">${row.amount.toFixed(2)}</span> },
+    { header: 'Title', cell: row => <span className="font-semibold text-gray-900">{row.fee_structures?.fee_types?.name || row.invoice_number}</span> },
+    { header: 'Amount', cell: row => (
+      <div>
+        <span className="font-bold">${(row.net_amount || row.amount).toFixed(2)}</span>
+        {row.discount > 0 && <span className="text-xs text-green-600 block">-${row.discount.toFixed(2)} discount</span>}
+      </div>
+    )},
     { header: 'Due Date', cell: row => format(new Date(row.due_date), 'MMM dd, yyyy') },
     { header: 'Status', cell: row => <StatusBadge status={row.status} /> },
     { header: 'Action', cell: row => (
@@ -165,13 +170,13 @@ export default function CollectFeesPage() {
           <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
             <h2 className="text-lg font-bold text-gray-900">Collect Payment</h2>
             <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-              <p className="text-sm text-gray-500">Invoice: <span className="font-semibold text-gray-900">{selectedInvoice.title}</span></p>
-              <p className="text-sm text-gray-500">Amount Due: <span className="font-bold text-red-600">${selectedInvoice.amount.toFixed(2)}</span></p>
+              <p className="text-sm text-gray-500">Invoice: <span className="font-semibold text-gray-900">{selectedInvoice.fee_structures?.fee_types?.name || selectedInvoice.invoice_number}</span></p>
+              <p className="text-sm text-gray-500">Amount Due: <span className="font-bold text-red-600">${(selectedInvoice.due_amount || selectedInvoice.net_amount || selectedInvoice.amount).toFixed(2)}</span></p>
             </div>
             <div className="space-y-4">
               <div>
                 <label className="label">Amount to Collect ($)</label>
-                <input type="number" value={paymentData.amount} onChange={e => setPaymentData({ ...paymentData, amount: Number(e.target.value) })} className="input-field" min="0" max={selectedInvoice.amount} />
+                <input type="number" value={paymentData.amount} onChange={e => setPaymentData({ ...paymentData, amount: Number(e.target.value) })} className="input-field" min="0" max={selectedInvoice.due_amount || selectedInvoice.net_amount || selectedInvoice.amount} />
               </div>
               <div>
                 <label className="label">Payment Method</label>
