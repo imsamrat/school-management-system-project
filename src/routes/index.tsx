@@ -22,6 +22,11 @@ import EmployeeListPage from '@/pages/employees/EmployeeListPage';
 import EmployeeFormPage from '@/pages/employees/EmployeeFormPage';
 import EmployeeProfilePage from '@/pages/employees/EmployeeProfilePage';
 
+// Staff (Unified)
+import StaffListPage from '@/pages/staff/StaffListPage';
+import StaffFormPage from '@/pages/staff/StaffFormPage';
+import StaffProfilePage from '@/pages/staff/StaffProfilePage';
+
 // Academics
 import ClassesPage from '@/pages/academics/ClassesPage';
 import SectionsPage from '@/pages/academics/SectionsPage';
@@ -108,15 +113,20 @@ export const router = createBrowserRouter([
       { path: 'students/new', element: <StudentFormPage /> },
       { path: 'students/:id', element: <StudentProfilePage /> },
 
-      // Teachers
+      // Teachers (legacy routes kept for compatibility)
       { path: 'teachers', element: <TeacherListPage /> },
       { path: 'teachers/new', element: <TeacherFormPage /> },
       { path: 'teachers/:id', element: <TeacherProfilePage /> },
 
-      // Employees
+      // Employees (legacy routes kept for compatibility)
       { path: 'employees', element: <EmployeeListPage /> },
       { path: 'employees/new', element: <EmployeeFormPage /> },
       { path: 'employees/:id', element: <EmployeeProfilePage /> },
+
+      // Staff (Unified — primary routes)
+      { path: 'staff', element: <StaffListPage /> },
+      { path: 'staff/new', element: <StaffFormPage /> },
+      { path: 'staff/:id', element: <StaffProfilePage /> },
 
       // Academics
       { path: 'academics/years', element: <AcademicYearsPage /> },

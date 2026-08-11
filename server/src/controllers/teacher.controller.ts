@@ -10,14 +10,13 @@ export const getTeachers = async (req: AuthRequest, res: Response) => {
 
     const { q } = req.query;
     let query = supabaseAdmin
-      .from('staff')
+      .from('teachers')
       .select('*')
       .eq('school_id', schoolId)
-      .eq('role', 'teacher')
       .neq('status', 'terminated');
 
     if (q && typeof q === 'string') {
-      query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,staff_id_code.ilike.%${q}%`);
+      query = query.or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,teacher_id_code.ilike.%${q}%`);
     }
 
     const { data, error } = await query;
@@ -36,11 +35,10 @@ export const getTeacherById = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('teachers')
       .select('*')
       .eq('school_id', schoolId)
       .eq('id', id)
-      .eq('role', 'teacher')
       .single();
 
     if (error) throw error;
@@ -57,16 +55,20 @@ export const createTeacher = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
     if (!schoolId) return sendError(res, 'School ID not found in token', 400);
+    
+    // Auto-generate employee code for teachers
+    const teacher_id_code = req.body.teacher_id_code || `TCH-${Date.now().toString().slice(-6)}`;
+    const employee_id_code = `EMP-T-${Date.now().toString().slice(-6)}`;
 
     const newTeacher = {
       ...req.body,
       school_id: schoolId,
-      role: 'teacher',
-      status: 'active'
+      teacher_id_code,
+      employee_id_code,
     };
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('teachers')
       .insert(newTeacher)
       .select()
       .single();
@@ -85,11 +87,10 @@ export const updateTeacher = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('teachers')
       .update(req.body)
       .eq('school_id', schoolId)
       .eq('id', id)
-      .eq('role', 'teacher')
       .select()
       .single();
 
@@ -107,11 +108,10 @@ export const deleteTeacher = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const { error } = await supabaseAdmin
-      .from('staff')
-      .update({ status: 'terminated' })
+      .from('teachers')
+      .update({ status: 'terminated', deleted_at: new Date().toISOString() })
       .eq('school_id', schoolId)
-      .eq('id', id)
-      .eq('role', 'teacher');
+      .eq('id', id);
 
     if (error) throw error;
     return sendSuccess(res, null, 'Teacher deleted successfully');

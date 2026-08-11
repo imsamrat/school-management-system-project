@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { requirePermission } from '../middleware/rbac.middleware.js';
-import * as employeeController from '../controllers/employee.controller.js';
+import * as staffController from '../controllers/staff.controller.js';
 
 const router = Router();
-
 router.use(authenticate);
 
-router.get('/', requirePermission('employees.view'), employeeController.getEmployees);
-router.get('/:id', requirePermission('employees.view'), employeeController.getEmployeeById);
-router.post('/', requirePermission('employees.create'), employeeController.createEmployee);
-router.put('/:id', requirePermission('employees.edit'), employeeController.updateEmployee);
-router.delete('/:id', requirePermission('employees.edit'), employeeController.deleteEmployee);
+// Legacy aliases — filtered to non-teachers (is_teacher=false)
+router.get('/', requirePermission('employees.view'), staffController.getEmployees);
+router.get('/:id', requirePermission('employees.view'), staffController.getEmployeeById);
+router.post('/', requirePermission('employees.create'), staffController.createEmployee);
+router.put('/:id', requirePermission('employees.edit'), staffController.updateEmployee);
+router.delete('/:id', requirePermission('employees.edit'), staffController.deleteEmployee);
 
 export default router;

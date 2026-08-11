@@ -19,6 +19,7 @@ export const api = createApi({
     'Students',
     'Teachers',
     'Employees',
+    'Staff',
     'Classes',
     'Sections',
     'Subjects',

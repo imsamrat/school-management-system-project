@@ -9,10 +9,9 @@ export const getEmployees = async (req: AuthRequest, res: Response) => {
     if (!schoolId) return sendError(res, 'School ID not found in token', 400);
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('employees')
       .select('*')
       .eq('school_id', schoolId)
-      .neq('role', 'teacher')
       .neq('status', 'terminated');
 
     if (error) throw error;
@@ -29,11 +28,10 @@ export const getEmployeeById = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('employees')
       .select('*')
       .eq('school_id', schoolId)
       .eq('id', id)
-      .neq('role', 'teacher')
       .single();
 
     if (error) throw error;
@@ -54,15 +52,10 @@ export const createEmployee = async (req: AuthRequest, res: Response) => {
     const newEmp = {
       ...req.body,
       school_id: schoolId,
-      status: 'active'
     };
-    // Ensure role is not teacher if created through employee endpoint
-    if (!newEmp.role || newEmp.role === 'teacher') {
-        newEmp.role = 'staff';
-    }
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('employees')
       .insert(newEmp)
       .select()
       .single();
@@ -81,11 +74,10 @@ export const updateEmployee = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const { data, error } = await supabaseAdmin
-      .from('staff')
+      .from('employees')
       .update(req.body)
       .eq('school_id', schoolId)
       .eq('id', id)
-      .neq('role', 'teacher')
       .select()
       .single();
 
@@ -103,11 +95,10 @@ export const deleteEmployee = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const { error } = await supabaseAdmin
-      .from('staff')
-      .update({ status: 'terminated' })
+      .from('employees')
+      .update({ status: 'terminated', deleted_at: new Date().toISOString() })
       .eq('school_id', schoolId)
-      .eq('id', id)
-      .neq('role', 'teacher');
+      .eq('id', id);
 
     if (error) throw error;
     return sendSuccess(res, null, 'Employee deleted successfully');

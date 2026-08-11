@@ -63,21 +63,15 @@ const sidebarConfig: SidebarItem[] = [
     ],
   },
   {
-    label: 'Teachers',
+    label: 'Staff',
     icon: Users,
-    permission: 'teachers.view',
-    children: [
-      { label: 'Teacher Register', href: '/teachers', permission: 'teachers.view' },
-      { label: 'Add Teacher', href: '/teachers/new', permission: 'teachers.create' },
-    ],
-  },
-  {
-    label: 'Employees',
-    icon: Briefcase,
     permission: 'employees.view',
     children: [
-      { label: 'Employee Register', href: '/employees', permission: 'employees.view' },
-      { label: 'Add Employee', href: '/employees/new', permission: 'employees.create' },
+      { label: 'All Staff', href: '/staff', permission: 'employees.view' },
+      { label: 'Teachers', href: '/staff?role=teacher', permission: 'teachers.view' },
+      { label: 'Employees', href: '/staff?role=employee', permission: 'employees.view' },
+      { label: 'Add Staff Member', href: '/staff/new', permission: 'employees.create' },
+      { label: 'Add Teacher', href: '/staff/new?role=teacher', permission: 'teachers.create' },
     ],
   },
   {
@@ -87,6 +81,7 @@ const sidebarConfig: SidebarItem[] = [
     children: [
       { label: 'Academic Year', href: '/academics/years' },
       { label: 'Classes', href: '/academics/classes' },
+      { label: 'Sections', href: '/academics/sections' },
       { label: 'Subjects', href: '/academics/subjects' },
       { label: 'Course Assignment', href: '/academics/assignments' },
       { label: 'Class Routine', href: '/academics/routine' },
