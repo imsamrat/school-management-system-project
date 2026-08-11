@@ -58,7 +58,6 @@ const sidebarConfig: SidebarItem[] = [
     permission: 'students.view',
     children: [
       { label: 'All Students', href: '/students', permission: 'students.view' },
-      { label: 'Add Student', href: '/students/new', permission: 'students.create' },
       { label: 'Student ID Cards', href: '/documents/id-cards', permission: 'documents.manage' },
     ],
   },
