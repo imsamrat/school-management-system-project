@@ -3,7 +3,8 @@ import { sendSuccess, sendError } from '../utils/response.js';
 import { AuthRequest } from '../types/express.js';
 import { supabaseAdmin } from '../config/supabase.js';
 
-export const getAttendance = async (req: AuthRequest, res: Response) => {
+// --- Student Attendance ---
+export const getStudentAttendance = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
     const { date, class_id, section_id } = req.query;
@@ -22,14 +23,14 @@ export const getAttendance = async (req: AuthRequest, res: Response) => {
     
     return sendSuccess(res, data);
   } catch (err) {
-    return sendError(res, 'Failed to fetch attendance', 500);
+    return sendError(res, 'Failed to fetch student attendance', 500);
   }
 };
 
-export const markAttendance = async (req: AuthRequest, res: Response) => {
+export const markStudentAttendance = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
-    const { records } = req.body; // Array of { student_id, status, date, class_id, section_id, marked_by }
+    const { records } = req.body; 
     
     if (!records || !records.length) return sendError(res, 'No records provided', 400);
 
@@ -39,7 +40,6 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
       marked_by: req.user?.id
     }));
 
-    // Upsert attendance to allow updating if already marked today
     const { data, error } = await supabaseAdmin
       .from('student_attendance')
       .upsert(insertData, { onConflict: 'student_id, date' })
@@ -48,14 +48,72 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
     if (error) throw error;
     return sendSuccess(res, data, 'Attendance marked successfully', 201);
   } catch (err) {
-    console.error('Failed to mark attendance', err);
+    console.error('Failed to mark student attendance', err);
     return sendError(res, 'Failed to mark attendance', 500);
   }
 };
 
+// --- Teacher Attendance ---
+export const getTeacherAttendance = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { date } = req.query;
+    
+    let query = supabaseAdmin
+      .from('staff_attendance')
+      .select('*, staff(first_name, last_name)')
+      .eq('school_id', schoolId);
+
+    if (date) query = query.eq('date', date);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendError(res, 'Failed to fetch teacher attendance', 500);
+  }
+};
+
+export const markTeacherAttendance = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { records } = req.body;
+    
+    if (!records || !records.length) return sendError(res, 'No records provided', 400);
+
+    const insertData = records.map((r: any) => ({
+      ...r,
+      school_id: schoolId,
+      marked_by: req.user?.id
+    }));
+
+    const { data, error } = await supabaseAdmin
+      .from('staff_attendance')
+      .upsert(insertData, { onConflict: 'staff_id, date' })
+      .select();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Teacher attendance marked', 201);
+  } catch (err) {
+    return sendError(res, 'Failed to mark teacher attendance', 500);
+  }
+};
+
+// --- Employee Attendance ---
+export const getEmployeeAttendance = async (req: AuthRequest, res: Response) => {
+  // Can just reuse teacher logic internally since they both query staff_attendance
+  return getTeacherAttendance(req, res);
+};
+
+export const markEmployeeAttendance = async (req: AuthRequest, res: Response) => {
+  // Reuse teacher logic internally 
+  return markTeacherAttendance(req, res);
+};
+
+// --- Stats ---
 export const getAttendanceStats = async (req: AuthRequest, res: Response) => {
   try {
-    // For now returning mock stats since complex SQL aggregates are needed for real stats
     return sendSuccess(res, {
       present_percentage: 92,
       absent_count: 5,

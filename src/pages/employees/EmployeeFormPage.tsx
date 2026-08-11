@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateEmployeeMutation } from '@/features/employees/employeeApi';
 import { ArrowLeft, Save } from 'lucide-react';
+import { ImageUpload } from '@/components/common/ImageUpload';
 
 export default function EmployeeFormPage() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function EmployeeFormPage() {
     employee_id_code: '',
     department: '',
     designation: '',
+    photo_url: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,6 +51,13 @@ export default function EmployeeFormPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-100">
               Personal Information
             </h3>
+            <div className="mb-6">
+              <ImageUpload
+                value={formData.photo_url}
+                onChange={(url) => setFormData(prev => ({ ...prev, photo_url: url }))}
+                label="Employee Photo"
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="label">First Name *</label>

@@ -97,10 +97,19 @@ export default function AdmitCardsPage() {
               </div>
 
               {/* Exam Info */}
-              <div className="bg-primary-50 px-4 py-2 flex justify-between items-center border-b border-primary-100">
-                <div>
-                  <p className="text-[10px] text-primary-600 font-semibold uppercase">Examination</p>
-                  <p className="text-sm font-bold text-primary-900">{selectedExamObj?.name || 'Selected Exam'}</p>
+              <div className="bg-primary-50 px-4 py-3 flex justify-between items-center border-b border-primary-100">
+                <div className="flex gap-4 items-center">
+                  {student.photo_url ? (
+                    <img src={student.photo_url} alt={`${student.first_name}`} className="w-16 h-16 rounded-lg object-cover border border-primary-200 shadow-sm" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gray-200 border border-gray-300 flex items-center justify-center">
+                      <span className="text-gray-400 text-xs">No Photo</span>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-semibold text-primary-900">{selectedExamObj?.name}</h4>
+                    <p className="text-sm text-primary-700">Academic Year 2023-2024</p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-primary-600 font-semibold uppercase">Date</p>

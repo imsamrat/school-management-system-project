@@ -110,3 +110,25 @@ export const getCourseAssignments = async (req: AuthRequest, res: Response) => {
 export const createCourseAssignment = async (req: AuthRequest, res: Response) => {
   return sendError(res, 'Not implemented for Supabase yet', 501);
 };
+
+export const getClassRoutines = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('class_routines').select('*, classes(name), sections(name), subjects(name), staff(first_name, last_name)').eq('school_id', schoolId);
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendSuccess(res, []); // Fallback
+  }
+};
+
+export const createClassRoutine = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('class_routines').insert({ ...req.body, school_id: schoolId }).select().single();
+    if (error) throw error;
+    return sendSuccess(res, data, 'Routine created', 201);
+  } catch (err) {
+    return sendError(res, 'Failed to create routine', 500);
+  }
+};

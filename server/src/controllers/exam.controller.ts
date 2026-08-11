@@ -25,6 +25,18 @@ export const createExam = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateExam = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { id } = req.params;
+    const { data, error } = await supabaseAdmin.from('examinations').update(req.body).eq('school_id', schoolId).eq('id', id).select().single();
+    if (error) throw error;
+    return sendSuccess(res, data, 'Exam updated successfully');
+  } catch (err) {
+    return sendError(res, 'Failed to update exam', 500);
+  }
+};
+
 export const getExamSchedules = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
@@ -50,14 +62,13 @@ export const createExamSchedule = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getExamMarks = async (req: AuthRequest, res: Response) => {
+export const getMarks = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
     const { exam_id, class_id } = req.query;
     let query = supabaseAdmin.from('exam_marks').select('*, students(first_name, last_name, roll_number), subjects(name)').eq('school_id', schoolId);
     
     if (exam_id) query = query.eq('exam_id', exam_id);
-    // Note: To filter by class_id we would need a join to students or exam_schedules in real production DB.
     
     const { data, error } = await query;
     if (error) throw error;
@@ -67,7 +78,7 @@ export const getExamMarks = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const submitExamMarks = async (req: AuthRequest, res: Response) => {
+export const saveMarks = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
     const { marks } = req.body;

@@ -3,6 +3,36 @@ import { sendSuccess, sendError } from '../utils/response.js';
 import { AuthRequest } from '../types/express.js';
 import { supabaseAdmin } from '../config/supabase.js';
 
+export const getFeeStructures = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('fee_structures').select('*').eq('school_id', schoolId);
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendSuccess(res, []);
+  }
+};
+
+export const createFeeStructure = async (req: AuthRequest, res: Response) => {
+  return sendError(res, 'Not implemented for Supabase yet', 501);
+};
+
+export const createInvoice = async (req: AuthRequest, res: Response) => {
+  return sendError(res, 'Not implemented for Supabase yet', 501);
+};
+
+export const getPayments = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { data, error } = await supabaseAdmin.from('fee_payments').select('*').eq('school_id', schoolId).order('created_at', { ascending: false });
+    if (error) throw error;
+    return sendSuccess(res, data);
+  } catch (err) {
+    return sendSuccess(res, []);
+  }
+};
+
 export const getInvoices = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;

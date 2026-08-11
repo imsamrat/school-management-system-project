@@ -42,7 +42,7 @@ export const createBook = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getBookIssues = async (req: AuthRequest, res: Response) => {
+export const getIssues = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
     const { status } = req.query;

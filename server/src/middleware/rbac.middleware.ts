@@ -10,7 +10,8 @@ export const requirePermission = (permission: string) => {
     }
 
     // Super Admin has all permissions implicitly
-    if (user.roles.includes('Super Admin')) {
+    const isSuperAdmin = user.roles.some((r: any) => r === 'Super Admin' || r.name === 'Super Admin');
+    if (isSuperAdmin) {
       return next();
     }
 
@@ -29,7 +30,8 @@ export const requireAnyPermission = (permissions: string[]) => {
       return sendError(res, 'Authentication required', 401);
     }
 
-    if (user.roles.includes('Super Admin')) {
+    const isSuperAdmin = user.roles.some((r: any) => r === 'Super Admin' || r.name === 'Super Admin');
+    if (isSuperAdmin) {
       return next();
     }
 
