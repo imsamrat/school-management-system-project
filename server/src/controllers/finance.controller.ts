@@ -6,10 +6,22 @@ import { supabaseAdmin } from '../config/supabase.js';
 export const getFeeStructures = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
-    const { data, error } = await supabaseAdmin.from('fee_structures').select('*').eq('school_id', schoolId);
+    const { data, error } = await supabaseAdmin
+      .from('fee_structures')
+      .select('*, fee_types(name)')
+      .eq('school_id', schoolId);
+      
     if (error) throw error;
-    return sendSuccess(res, data);
+    
+    // Flatten the name for the frontend table
+    const formattedData = data.map(item => ({
+      ...item,
+      name: item.fee_types?.name || 'Unknown Fee'
+    }));
+    
+    return sendSuccess(res, formattedData);
   } catch (err) {
+    console.error('Error fetching fee structures:', err);
     return sendSuccess(res, []);
   }
 };
