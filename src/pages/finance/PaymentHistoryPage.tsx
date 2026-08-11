@@ -17,7 +17,7 @@ export default function PaymentHistoryPage() {
   const columns: Column<Payment>[] = [
     { 
       header: 'Date', 
-      cell: row => format(new Date(row.payment_date), 'MMM dd, yyyy')
+      cell: row => format(new Date(row.paid_date || row.created_at), 'MMM dd, yyyy')
     },
     { 
       header: 'Student', 

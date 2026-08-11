@@ -52,8 +52,8 @@ export default function FeeReceiptPage() {
           </div>
           <div className="text-right">
             <h1 className="text-4xl font-bold text-primary-700 uppercase tracking-widest opacity-20 mt-2">Receipt</h1>
-            <p className="text-sm font-semibold text-gray-600 mt-2">Receipt No: <span className="text-gray-900">RCT-{payment.id.toUpperCase()}</span></p>
-            <p className="text-sm font-semibold text-gray-600">Date: <span className="text-gray-900">{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</span></p>
+            <p className="text-sm font-semibold text-gray-600 mt-2">Receipt No: <span className="text-gray-900">{payment.receipt_number || `RCT-${payment.id.slice(0, 8).toUpperCase()}`}</span></p>
+            <p className="text-sm font-semibold text-gray-600">Date: <span className="text-gray-900">{format(new Date(payment.paid_date || payment.created_at || new Date()), 'MMM dd, yyyy')}</span></p>
           </div>
         </div>
 

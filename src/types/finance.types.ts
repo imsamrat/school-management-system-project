@@ -21,9 +21,11 @@ export interface Payment {
   invoice_id: string;
   student_id: string;
   amount: number;
-  payment_method: 'cash' | 'bank_transfer' | 'card' | 'cheque';
-  reference_number?: string;
-  payment_date: string;
+  payment_method: 'cash' | 'bank' | 'card' | 'mobile_banking' | 'other';
+  transaction_ref?: string;
+  receipt_number: string;
+  paid_date: string;
+  created_at?: string;
 }
 
 export interface ExpenseCategory {
