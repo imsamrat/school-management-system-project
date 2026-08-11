@@ -60,8 +60,8 @@ export const getTeacherAttendance = async (req: AuthRequest, res: Response) => {
     const { date } = req.query;
     
     let query = supabaseAdmin
-      .from('staff_attendance')
-      .select('*, staff(first_name, last_name)')
+      .from('teacher_attendance')
+      .select('*, employees(first_name, last_name)')
       .eq('school_id', schoolId);
 
     if (date) query = query.eq('date', date);
@@ -89,8 +89,8 @@ export const markTeacherAttendance = async (req: AuthRequest, res: Response) => 
     }));
 
     const { data, error } = await supabaseAdmin
-      .from('staff_attendance')
-      .upsert(insertData, { onConflict: 'staff_id, date' })
+      .from('teacher_attendance')
+      .upsert(insertData, { onConflict: 'employee_id, date' })
       .select();
 
     if (error) throw error;

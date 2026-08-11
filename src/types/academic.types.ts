@@ -23,7 +23,7 @@ export interface CourseAssignment {
   class_id: string;
   section_id: string;
   subject_id: string;
-  teacher_id: string;
+  employee_id: string;
 }
 
 export interface ClassRoutine {
@@ -35,5 +35,5 @@ export interface ClassRoutine {
   start_time: string;
   end_time: string;
   subject_id: string;
-  teacher_id: string;
+  employee_id: string;
 }

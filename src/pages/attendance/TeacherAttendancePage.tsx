@@ -26,7 +26,7 @@ export default function TeacherAttendancePage() {
   useEffect(() => {
     const newState: Record<string, string> = {};
     existingAttendance.forEach(a => {
-      if (a.teacher_id) newState[a.teacher_id] = a.status;
+      if (a.employee_id) newState[a.employee_id] = a.status;
     });
     setLocalState(newState);
   }, [existingAttendance, dateStr]); // reset when date changes
@@ -42,7 +42,7 @@ export default function TeacherAttendancePage() {
   };
 
   const handleSave = async () => {
-    const records = Object.entries(localState).map(([teacher_id, status]) => ({ teacher_id, status }));
+    const records = Object.entries(localState).map(([employee_id, status]) => ({ employee_id, status }));
     if (records.length === 0) return;
     
     try {

@@ -17,7 +17,7 @@ export default function CourseAssignmentsPage() {
   const { hasPermission } = usePermission();
   
   const [isAdding, setIsAdding] = useState(false);
-  const [newAssignment, setNewAssignment] = useState({ class_id: '', section_id: '', subject_id: '', teacher_id: '' });
+  const [newAssignment, setNewAssignment] = useState({ class_id: '', section_id: '', subject_id: '', employee_id: '' });
 
   const assignments = response?.data || [];
   const classes = classesRes?.data || [];
@@ -26,11 +26,11 @@ export default function CourseAssignmentsPage() {
   const teachers = teachersRes?.data || [];
 
   const handleAdd = async () => {
-    if (!newAssignment.class_id || !newAssignment.subject_id || !newAssignment.teacher_id) return;
+    if (!newAssignment.class_id || !newAssignment.subject_id || !newAssignment.employee_id) return;
     try {
       await createAssignment(newAssignment as Partial<CourseAssignment>).unwrap();
       setIsAdding(false);
-      setNewAssignment({ class_id: '', section_id: '', subject_id: '', teacher_id: '' });
+      setNewAssignment({ class_id: '', section_id: '', subject_id: '', employee_id: '' });
     } catch (e) {
       console.error(e);
     }
@@ -52,8 +52,8 @@ export default function CourseAssignmentsPage() {
     { 
       header: 'Teacher', 
       cell: row => {
-        const t = teachers.find(t => t.id === row.teacher_id);
-        return t ? `${t.first_name} ${t.last_name}` : row.teacher_id;
+        const t = teachers.find(t => t.id === row.employee_id);
+        return t ? `${t.first_name} ${t.last_name}` : row.employee_id;
       }
     },
   ];
@@ -98,7 +98,7 @@ export default function CourseAssignmentsPage() {
             </div>
             <div>
               <label className="label">Teacher</label>
-              <select value={newAssignment.teacher_id} onChange={e => setNewAssignment({...newAssignment, teacher_id: e.target.value})} className="input-field">
+              <select value={newAssignment.employee_id} onChange={e => setNewAssignment({...newAssignment, employee_id: e.target.value})} className="input-field">
                 <option value="">Select Teacher...</option>
                 {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
               </select>
@@ -106,7 +106,7 @@ export default function CourseAssignmentsPage() {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setIsAdding(false)} className="btn-secondary">Cancel</button>
-            <button onClick={handleAdd} disabled={isCreating || !newAssignment.class_id || !newAssignment.subject_id || !newAssignment.teacher_id} className="btn-primary">Save Assignment</button>
+            <button onClick={handleAdd} disabled={isCreating || !newAssignment.class_id || !newAssignment.subject_id || !newAssignment.employee_id} className="btn-primary">Save Assignment</button>
           </div>
         </div>
       )}

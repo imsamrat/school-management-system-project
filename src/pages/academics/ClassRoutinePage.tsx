@@ -17,7 +17,7 @@ export default function ClassRoutinePage() {
   const { hasPermission } = usePermission();
   
   const [isAdding, setIsAdding] = useState(false);
-  const [newRoutine, setNewRoutine] = useState({ class_id: '', section_id: '', day_of_week: 'Monday', period_number: 1, start_time: '', end_time: '', subject_id: '', teacher_id: '' });
+  const [newRoutine, setNewRoutine] = useState({ class_id: '', section_id: '', day_of_week: 'Monday', period_number: 1, start_time: '', end_time: '', subject_id: '', employee_id: '' });
 
   const routines = response?.data || [];
   const classes = classesRes?.data || [];
@@ -26,7 +26,7 @@ export default function ClassRoutinePage() {
   const teachers = teachersRes?.data || [];
 
   const handleAdd = async () => {
-    if (!newRoutine.class_id || !newRoutine.subject_id || !newRoutine.teacher_id || !newRoutine.start_time) return;
+    if (!newRoutine.class_id || !newRoutine.subject_id || !newRoutine.employee_id || !newRoutine.start_time) return;
     try {
       await createRoutine(newRoutine as unknown as Partial<ClassRoutine>).unwrap();
       setIsAdding(false);
@@ -56,8 +56,8 @@ export default function ClassRoutinePage() {
     { 
       header: 'Teacher', 
       cell: row => {
-        const t = teachers.find(t => t.id === row.teacher_id);
-        return t ? `${t.first_name} ${t.last_name}` : row.teacher_id;
+        const t = teachers.find(t => t.id === row.employee_id);
+        return t ? `${t.first_name} ${t.last_name}` : row.employee_id;
       }
     },
   ];
@@ -115,7 +115,7 @@ export default function ClassRoutinePage() {
             </div>
             <div>
               <label className="label">Teacher</label>
-              <select value={newRoutine.teacher_id} onChange={e => setNewRoutine({...newRoutine, teacher_id: e.target.value})} className="input-field">
+              <select value={newRoutine.employee_id} onChange={e => setNewRoutine({...newRoutine, employee_id: e.target.value})} className="input-field">
                 <option value="">Select Teacher...</option>
                 {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
               </select>
@@ -123,7 +123,7 @@ export default function ClassRoutinePage() {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setIsAdding(false)} className="btn-secondary">Cancel</button>
-            <button onClick={handleAdd} disabled={isCreating || !newRoutine.class_id || !newRoutine.subject_id || !newRoutine.teacher_id} className="btn-primary">Save Slot</button>
+            <button onClick={handleAdd} disabled={isCreating || !newRoutine.class_id || !newRoutine.subject_id || !newRoutine.employee_id} className="btn-primary">Save Slot</button>
           </div>
         </div>
       )}

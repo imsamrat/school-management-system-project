@@ -103,7 +103,7 @@ export const getCourseAssignments = async (req: AuthRequest, res: Response) => {
     const schoolId = req.user?.schoolId;
     const { data, error } = await supabaseAdmin
       .from('course_assignments')
-      .select('*, teachers(first_name, last_name)')
+      .select('*, employees(first_name, last_name)')
       .eq('school_id', schoolId);
     if (error) throw error;
     return sendSuccess(res, data);
@@ -115,7 +115,24 @@ export const getCourseAssignments = async (req: AuthRequest, res: Response) => {
 export const createCourseAssignment = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;
-    const { data, error } = await supabaseAdmin.from('course_assignments').insert({ ...req.body, school_id: schoolId }).select().single();
+    
+    // Get active academic year
+    const { data: academicYear } = await supabaseAdmin
+      .from('academic_years')
+      .select('id')
+      .eq('school_id', schoolId)
+      .eq('status', 'active')
+      .single();
+      
+    if (!academicYear) {
+      return sendError(res, 'No active academic year found for this school', 400);
+    }
+
+    const { data, error } = await supabaseAdmin.from('course_assignments').insert({ 
+      ...req.body, 
+      school_id: schoolId,
+      academic_year_id: academicYear.id
+    }).select().single();
     if (error) throw error;
     return sendSuccess(res, data, 'Assignment created', 201);
   } catch (err) {
@@ -140,7 +157,26 @@ export const getClassRoutines = async (req: AuthRequest, res: Response) => {
 
 export const createClassRoutine = async (req: AuthRequest, res: Response) => {
   try {
-    const { data, error } = await supabaseAdmin.from('class_routines').insert(req.body).select().single();
+    const schoolId = req.user?.schoolId;
+    
+    // Get active academic year
+    const { data: academicYear } = await supabaseAdmin
+      .from('academic_years')
+      .select('id')
+      .eq('school_id', schoolId)
+      .eq('status', 'active')
+      .single();
+      
+    if (!academicYear) {
+      return sendError(res, 'No active academic year found for this school', 400);
+    }
+
+    const { data, error } = await supabaseAdmin.from('class_routines').insert({
+      ...req.body,
+      school_id: schoolId,
+      academic_year_id: academicYear.id
+    }).select().single();
+    
     if (error) throw error;
     return sendSuccess(res, data, 'Class routine created', 201);
   } catch (err) {
