@@ -20,6 +20,54 @@ export const getExpenseCategories = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const createExpenseCategory = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { name, description } = req.body;
+
+    const { data, error } = await supabaseAdmin
+      .from('expense_categories')
+      .insert({
+        school_id: schoolId,
+        name,
+        description
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return sendSuccess(res, data, 'Category created successfully', 201);
+  } catch (err: any) {
+    console.error('Error creating expense category:', err);
+    if (err.code === '23505') { // unique violation
+      return sendError(res, 'Category already exists', 400);
+    }
+    return sendError(res, 'Failed to create category', 500);
+  }
+};
+
+export const deleteExpenseCategory = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user?.schoolId;
+    const { id } = req.params;
+
+    const { error } = await supabaseAdmin
+      .from('expense_categories')
+      .delete()
+      .eq('school_id', schoolId)
+      .eq('id', id);
+
+    if (error) throw error;
+    return sendSuccess(res, null, 'Category deleted successfully');
+  } catch (err: any) {
+    console.error('Error deleting expense category:', err);
+    if (err.code === '23503') { // foreign key violation
+      return sendError(res, 'Cannot delete category that is in use by expenses', 400);
+    }
+    return sendError(res, 'Failed to delete category', 500);
+  }
+};
+
 export const getExpenses = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user?.schoolId;

@@ -6,7 +6,22 @@ export const expenseApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getExpenseCategories: builder.query<ApiResponse<ExpenseCategory[]>, void>({
       query: () => '/expenses/categories',
-      providesTags: ['Expenses'],
+      providesTags: ['ExpenseCategories'],
+    }),
+    createExpenseCategory: builder.mutation<ApiResponse<ExpenseCategory>, { name: string; description?: string }>({
+      query: (body) => ({
+        url: '/expenses/categories',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['ExpenseCategories'],
+    }),
+    deleteExpenseCategory: builder.mutation<ApiResponse<null>, string>({
+      query: (id) => ({
+        url: `/expenses/categories/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ExpenseCategories'],
     }),
     getExpenses: builder.query<ApiResponse<Expense[]>, { start_date?: string; end_date?: string; category_id?: string }>({
       query: (params) => ({
@@ -35,6 +50,8 @@ export const expenseApi = api.injectEndpoints({
 
 export const {
   useGetExpenseCategoriesQuery,
+  useCreateExpenseCategoryMutation,
+  useDeleteExpenseCategoryMutation,
   useGetExpensesQuery,
   useCreateExpenseMutation,
   useDeleteExpenseMutation,
