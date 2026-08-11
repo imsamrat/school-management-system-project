@@ -111,6 +111,7 @@ export const router = createBrowserRouter([
       // Students
       { path: 'students', element: <StudentListPage /> },
       { path: 'students/new', element: <StudentFormPage /> },
+      { path: 'students/:id/edit', element: <StudentFormPage /> },
       { path: 'students/:id', element: <StudentProfilePage /> },
 
       // Teachers (legacy routes kept for compatibility)

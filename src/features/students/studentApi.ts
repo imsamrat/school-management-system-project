@@ -23,6 +23,7 @@ export const studentApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Students'],
     }),
+
     updateStudent: builder.mutation<ApiResponse<Student>, { id: string; body: Partial<Student> }>({
       query: ({ id, body }) => ({
         url: `/students/${id}`,

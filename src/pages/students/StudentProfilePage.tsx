@@ -60,7 +60,10 @@ export default function StudentProfilePage() {
         </div>
         <div className="flex items-center gap-3">
           {hasPermission('students.edit') && (
-            <button className="btn-secondary flex items-center gap-2">
+            <button 
+              onClick={() => navigate(`/students/${student.id}/edit`)}
+              className="btn-secondary flex items-center gap-2"
+            >
               <Edit className="w-4 h-4" /> Edit
             </button>
           )}

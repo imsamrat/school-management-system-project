@@ -1,13 +1,20 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCreateStudentMutation } from '@/features/students/studentApi';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useCreateStudentMutation, useGetStudentByIdQuery, useUpdateStudentMutation } from '@/features/students/studentApi';
 import { ArrowLeft, Save } from 'lucide-react';
 import { ImageUpload } from '@/components/common/ImageUpload';
 import { useGetClassesQuery, useGetSectionsQuery } from '@/features/academics/academicApi';
 
 export default function StudentFormPage() {
   const navigate = useNavigate();
-  const [createStudent, { isLoading }] = useCreateStudentMutation();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
+
+  const { data: studentRes } = useGetStudentByIdQuery(id!, { skip: !id });
+  const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
+  const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
+  const isLoading = isCreating || isUpdating;
+
   const { data: classesRes } = useGetClassesQuery();
   const { data: sectionsRes } = useGetSectionsQuery();
   
@@ -24,13 +31,32 @@ export default function StudentFormPage() {
     photo_url: '',
   });
 
+  useEffect(() => {
+    if (isEditMode && studentRes?.data) {
+      const student = studentRes.data;
+      setFormData({
+        first_name: student.first_name || '',
+        last_name: student.last_name || '',
+        admission_number: student.admission_number || '',
+        gender: student.gender || 'male',
+        class_id: student.class_id || '',
+        section_id: student.section_id || '',
+        photo_url: student.photo_url || '',
+      });
+    }
+  }, [isEditMode, studentRes]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createStudent(formData).unwrap();
+      if (isEditMode) {
+        await updateStudent({ id: id!, body: formData }).unwrap();
+      } else {
+        await createStudent(formData).unwrap();
+      }
       navigate('/students');
     } catch (error) {
-      console.error('Failed to create student:', error);
+      console.error('Failed to save student:', error);
     }
   };
 
@@ -48,8 +74,12 @@ export default function StudentFormPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">New Admission</h1>
-          <p className="text-sm text-gray-500 mt-1">Enroll a new student into the system</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            {isEditMode ? 'Edit Student' : 'New Admission'}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {isEditMode ? 'Update student profile details' : 'Enroll a new student into the system'}
+          </p>
         </div>
       </div>
 
@@ -125,7 +155,7 @@ export default function StudentFormPage() {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            Save Student
+            {isEditMode ? 'Save Changes' : 'Save Student'}
           </button>
         </div>
       </form>
